@@ -7,10 +7,10 @@
 #include <stdio.h>
 
 #define BAUDRATE B38400
-#define MODEMDEVICE "/dev/ttyS1"
 #define _POSIX_SOURCE 1 /* POSIX compliant source */
 #define FALSE 0
 #define TRUE 1
+#define MAX_BUF 255
 
 volatile int STOP=FALSE;
 
@@ -18,12 +18,11 @@ int main(int argc, char** argv)
 {
     int fd,c, res;
     struct termios oldtio,newtio;
-    char buf[255];
-    int i, sum = 0, speed = 0;
-    
+    char buf[MAX_BUF];
+
     if ( (argc < 2) || 
-  	     ((strcmp("/dev/ttyS0", argv[1])!=0) && 
-  	      (strcmp("/dev/ttyS1", argv[1])!=0) )) {
+  	     ((strcmp("/dev/ttyS10", argv[1])!=0) && 
+  	      (strcmp("/dev/ttyS11", argv[1])!=0) )) {
       printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1\n");
       exit(1);
     }
@@ -33,8 +32,8 @@ int main(int argc, char** argv)
     Open serial port device for reading and writing and not as controlling tty
     because we don't want to get killed if linenoise sends CTRL-C.
   */
-
-
+  
+    
     fd = open(argv[1], O_RDWR | O_NOCTTY );
     if (fd <0) {perror(argv[1]); exit(-1); }
 
@@ -58,7 +57,7 @@ int main(int argc, char** argv)
 
   /* 
     VTIME e VMIN devem ser alterados de forma a proteger com um temporizador a 
-    leitura do(s) próximo(s) caracter(es)
+    leitura do(s) prï¿½ximo(s) caracter(es)
   */
 
 
@@ -72,35 +71,28 @@ int main(int argc, char** argv)
 
     printf("New termios structure set\n");
 
-
-
-    for (i = 0; i < 255; i++) {
-      buf[i] = 'a';
+    char str_rcv[MAX_BUF];
+    unsigned i = 0;
+    while (STOP==FALSE) {       /* loop for input */
+      res = read(fd,buf,1);   /* returns after 1 char have been input */
+      buf[res]=0;               /* so we can printf... */
+      str_rcv[i] = buf[0];
+      i++;
+      printf(":%s:%d\n", buf, res);
+      if (buf[0]=='\0') STOP=TRUE;
     }
-    
-    /*testing*/
-    buf[25] = '\n';
-    
-    res = write(fd,buf,255);   
-    printf("%d bytes written\n", res);
- 
+    printf("String received: ->%s\n", str_rcv);
 
+    
+    res = write(fd,str_rcv,strlen(str_rcv)+1);  //Sends it back to the sender (including the null character '\0')
+    printf("%d bytes written\n", res);
   /* 
-    O ciclo FOR e as instruções seguintes devem ser alterados de modo a respeitar 
-    o indicado no guião 
+    O ciclo WHILE deve ser alterado de modo a respeitar o indicado no guiï¿½o 
   */
 
 
 
-   
-    if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
-      perror("tcsetattr");
-      exit(-1);
-    }
-
-
-
-
+    tcsetattr(fd,TCSANOW,&oldtio);
     close(fd);
     return 0;
 }
