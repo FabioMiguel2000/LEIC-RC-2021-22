@@ -1,6 +1,7 @@
 /*Non-Canonical Input Processing*/
 #include "macros.h"
 
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -13,7 +14,66 @@
 #define TRUE 1
 #define MAX_BUF 255
 
-volatile int STOP=FALSE;
+volatile int over=FALSE;
+
+enum stateMachine { START, FLAG_RCV, A_RCV, C_RCV, BCC_OK, STOP};
+
+typedef struct {
+    enum stateMachine currState;
+    char A_field;
+    char C_field;
+
+}stateMachine_st;
+
+void updateStateMachine(stateMachine_st *currStateMachine, char *buf){
+    switch(currStateMachine->currState){
+        case START: 
+            if(buf[0] == FLAG){
+                currStateMachine->currState = FLAG_RCV;
+            }
+            break;
+        case FLAG_RCV:
+            if(buf[0] == A_CERR){
+                currStateMachine->currState = A_RCV;
+                currStateMachine->A_field = buf[0];
+            }
+            else if(buf[0] != FLAG){
+                currStateMachine->currState = START;
+            }
+            break;
+        case A_RCV:
+            if(buf[0] == C_SET){
+                currStateMachine->currState = C_RCV;
+                currStateMachine->C_field = buf[0];
+            }
+            else if(buf[0] == FLAG){
+                currStateMachine->currState = FLAG_RCV;
+            }
+            else if(buf[0] != FLAG){
+                currStateMachine->currState = START;
+            }
+            break;
+        case C_RCV:
+            if(buf[0] == (currStateMachine->A_field ^ currStateMachine->C_field)){ //Check BCC
+                currStateMachine->currState = BCC_OK;
+            }
+            else if(buf[0] == FLAG){
+                currStateMachine->currState = FLAG_RCV;
+
+            }
+            else if(buf[0] != FLAG){
+                currStateMachine->currState = START;
+            }
+            break;
+        case BCC_OK:
+            if(buf[0] == FLAG){
+                currStateMachine->currState = STOP;
+            }
+            break;
+    }
+}
+
+
 
 int main(int argc, char** argv)
 {
@@ -72,21 +132,13 @@ int main(int argc, char** argv)
 
     printf("New termios structure set\n");
 
-
-    int i = 0;
-    while (STOP==FALSE) {       /* loop for input */
+    stateMachine_st stateMachine;
+    while (stateMachine.currState!=STOP) {       /* loop for input */
       res = read(fd,buf,1);   /* returns after 1 char have been input */
       buf[res]=0;               /* so we can printf... */
 
       printf(":%#x:%d\n", buf[0], res);
-      // if (buf[0]=='\0') {
-      //   printf("this is \0");
-      //   STOP=TRUE;
-      // }
-      if(i == 4){
-        STOP = TRUE;
-      }
-      i++;
+      updateStateMachine(&stateMachine, buf);
     }
     buf[0] = FLAG;
     buf[1] = A_CERR;
