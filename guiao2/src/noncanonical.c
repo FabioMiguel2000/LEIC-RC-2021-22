@@ -1,5 +1,6 @@
 /*Non-Canonical Input Processing*/
 #include "macros.h"
+#include "stateMachine.h"
 
 
 #include <sys/types.h>
@@ -7,6 +8,9 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
 
 #define BAUDRATE B38400
 #define _POSIX_SOURCE 1 /* POSIX compliant source */
@@ -15,64 +19,6 @@
 #define MAX_BUF 255
 
 volatile int over=FALSE;
-
-enum stateMachine { START, FLAG_RCV, A_RCV, C_RCV, BCC_OK, STOP};
-
-typedef struct {
-    enum stateMachine currState;
-    char A_field;
-    char C_field;
-
-}stateMachine_st;
-
-void updateStateMachine(stateMachine_st *currStateMachine, char *buf){
-    switch(currStateMachine->currState){
-        case START: 
-            if(buf[0] == FLAG){
-                currStateMachine->currState = FLAG_RCV;
-            }
-            break;
-        case FLAG_RCV:
-            if(buf[0] == A_CERR){
-                currStateMachine->currState = A_RCV;
-                currStateMachine->A_field = buf[0];
-            }
-            else if(buf[0] != FLAG){
-                currStateMachine->currState = START;
-            }
-            break;
-        case A_RCV:
-            if(buf[0] == C_SET){
-                currStateMachine->currState = C_RCV;
-                currStateMachine->C_field = buf[0];
-            }
-            else if(buf[0] == FLAG){
-                currStateMachine->currState = FLAG_RCV;
-            }
-            else if(buf[0] != FLAG){
-                currStateMachine->currState = START;
-            }
-            break;
-        case C_RCV:
-            if(buf[0] == (currStateMachine->A_field ^ currStateMachine->C_field)){ //Check BCC
-                currStateMachine->currState = BCC_OK;
-            }
-            else if(buf[0] == FLAG){
-                currStateMachine->currState = FLAG_RCV;
-
-            }
-            else if(buf[0] != FLAG){
-                currStateMachine->currState = START;
-            }
-            break;
-        case BCC_OK:
-            if(buf[0] == FLAG){
-                currStateMachine->currState = STOP;
-            }
-            break;
-    }
-}
-
 
 
 int main(int argc, char** argv)
