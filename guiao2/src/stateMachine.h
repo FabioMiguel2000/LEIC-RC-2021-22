@@ -13,6 +13,6 @@ typedef struct {
 
 }stateMachine_st;
 
-void updateStateMachine(stateMachine_st *currStateMachine, char *buf);
+void updateStateMachine(stateMachine_st *currStateMachine, char *buf, int identity);
 
 #endif

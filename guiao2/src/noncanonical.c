@@ -19,7 +19,7 @@
 #define MAX_BUF 255
 
 volatile int over=FALSE;
-
+int identity = RECEIVER;
 
 int main(int argc, char** argv)
 {
@@ -84,7 +84,7 @@ int main(int argc, char** argv)
       buf[res]=0;               /* so we can printf... */
 
       printf(":%#x:%d\n", buf[0], res);
-      updateStateMachine(&stateMachine, buf);
+      updateStateMachine(&stateMachine, buf, identity);
     }
     buf[0] = FLAG;
     buf[1] = A_CERR;

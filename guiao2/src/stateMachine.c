@@ -1,7 +1,7 @@
 #include "stateMachine.h"
 
 
-void updateStateMachine(stateMachine_st *currStateMachine, char *buf){
+void updateStateMachine(stateMachine_st *currStateMachine, char *buf, int identity){
     switch(currStateMachine->currState){
         case START: 
             if(buf[0] == FLAG){
@@ -18,7 +18,7 @@ void updateStateMachine(stateMachine_st *currStateMachine, char *buf){
             }
             break;
         case A_RCV:
-            if(buf[0] == C_SET){
+            if((identity == RECEIVER && buf[0] == C_SET) || (identity == SENDER && buf[0] == C_UA)){
                 currStateMachine->currState = C_RCV;
                 currStateMachine->C_field = buf[0];
             }

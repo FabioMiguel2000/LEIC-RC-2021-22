@@ -6,7 +6,7 @@ SRCS = stateMachine.c
 
 all: $(TARGETS)
 
-sender: writenoncanonical.c
+sender: writenoncanonical.c $(SRCS)
 	$(CC) $(CFLAGS) $^ -o $@
 
 receiver: noncanonical.c $(SRCS)

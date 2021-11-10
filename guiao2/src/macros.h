@@ -19,3 +19,8 @@
 /*      Campo de Proteção (cabeçalho)    */
 
 #define BCC(a,c) (a ^ c)                    // XOR entre Campo A e C
+
+
+/*              Identity                    */
+#define SENDER 0
+#define RECEIVER 1

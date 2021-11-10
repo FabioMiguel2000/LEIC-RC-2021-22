@@ -1,5 +1,6 @@
 /*Non-Canonical Input Processing*/
 #include "macros.h"
+#include "stateMachine.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -17,8 +18,8 @@
 #define FALSE 0
 #define TRUE 1
 
-volatile int STOP=FALSE;
-
+volatile int stop=FALSE;
+int identity = SENDER;
 
 int main(int argc, char** argv)
 {
@@ -86,19 +87,18 @@ int main(int argc, char** argv)
 
     res = write(fd,buf, 5);   //Sends the data to the receiver
     printf("%d bytes written\n", res);
- 
-    char reply[MAX_BUF];
-    i = 0;
-    while (STOP==FALSE) {       /* loop for input */
+
+
+    stateMachine_st stateMachine;
+
+    while (stateMachine.currState!=STOP) {       /* loop for input */
       res = read(fd,buf,1);   /* returns after 1 char have been input */
       buf[res]=0;               /* so we can printf... */
       printf(":%#x:%d\n", buf[0], res);
-      if(i == 4){
-        STOP = TRUE;
-      }
-      i++;
+
+      updateStateMachine(&stateMachine, buf, identity);
+
     }
-    printf("%d bytes received\n", i);
 
 
   /* 
