@@ -95,6 +95,7 @@ int main(int argc, char** argv)
 
 
     stateMachine_st stateMachine;
+    stateMachine.currState=START;
 
     while (stateMachine.currState!=STOP) {       /* loop for input */
     printf("entroustatemachine\n");
