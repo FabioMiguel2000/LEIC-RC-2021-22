@@ -104,7 +104,7 @@ int main(int argc, char** argv)
           printf("Erro de TIMEOUT\n");
           return 1;
         }
-        printf("alarme conta=%d\n",conta);//sigalarm foi emitido
+        //printf("alarme conta=%d\n",conta);//sigalarm foi emitido
         res = write(fd,buf, 5);//SENDS DATA TO RECEIVER AGAIN
         flag=0;
         stateMachine.currState=START;
@@ -112,8 +112,9 @@ int main(int argc, char** argv)
       }
       res = read(fd,buf,1);   /* returns after 1 char have been input */
       buf[res]=0;               /* so we can printf... */
-      //printf(":%#x:%d\n", buf[0], res);
-
+    
+      printf("sender-char received:%#x:%d\n", buf[0], res);
+      
       updateStateMachine(&stateMachine, buf, identity);
     
     }
