@@ -4,5 +4,5 @@
 #include <signal.h>
 #include <stdio.h>
 
-int flag=0,conta=0;
+int flag,conta;
 void atende();
