@@ -4,5 +4,5 @@
 #include <signal.h>
 #include <stdio.h>
 
-int flag,conta;
-void atende();
+int timeout,timeoutCount;
+void timeoutHandler();

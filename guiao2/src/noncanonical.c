@@ -23,7 +23,7 @@ int identity = RECEIVER;
 
 int main(int argc, char** argv)
 {
-    int fd,c, res;
+    int fd, res;
     struct termios oldtio,newtio;
     char buf[MAX_BUF];
 
@@ -95,9 +95,9 @@ int main(int argc, char** argv)
     
     res = write(fd,buf, 5);  //Sends it back to the sender
     
-    printf("receiver: %d bytes written:\n", res);
+    printf("Receiver: %d bytes written:\n", res);
     for(int i=0;i<5;i++){
-      printf("Receiver Buffer:%d\n",buf[i]);
+      printf("Receiver Buffer:%#x\n",buf[i]);
     }
   /* 
     O ciclo WHILE deve ser alterado de modo a respeitar o indicado no gui�o 

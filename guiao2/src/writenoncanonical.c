@@ -20,13 +20,13 @@
 
 volatile int stop=FALSE;
 int identity = SENDER;
-extern int flag,conta;
+extern int timeout,timeoutCount;
+
 int main(int argc, char** argv)
 {
-    int fd,c, res;
+    int fd, res;
     struct termios oldtio,newtio;
     char buf[MAX_BUF];
-    int i, sum = 0, speed = 0;
     
     if ( (argc < 2) || 
   	     ((strcmp("/dev/ttyS10", argv[1])!=0) && 
@@ -85,35 +85,38 @@ int main(int argc, char** argv)
     buf[4] = FLAG;
 
 
-    res = write(fd,buf, 5);   //Sends the data to the receiver
-    signal(SIGALRM,atende);
     
-    alarm(MAX_TIME);
-    flag=0;
-    conta=0;
-    printf("%d bytes written\n", res);
-
-
+    signal(SIGALRM,timeoutHandler);
+    
+    timeout=0;
+    timeoutCount=0;
     stateMachine_st stateMachine;
     stateMachine.currState=START;
 
+    alarm(MAX_TIME);          // 3 seconds timout
+    res = write(fd,buf, 5);   //Sends the data to the receiver
+    printf("%d bytes written\n", res);
+
     while (stateMachine.currState!=STOP) {       /* loop for input */
     
-      if(flag==1){
-        if(conta>=4){
-          printf("Erro de TIMEOUT\n");
+      if(timeout){
+        if(timeoutCount>=3){
+          printf("TIMEOUT, UA not received!\n");
           return 1;
         }
         //printf("alarme conta=%d\n",conta);//sigalarm foi emitido
-        res = write(fd,buf, 5);//SENDS DATA TO RECEIVER AGAIN
-        flag=0;
+        res = write(fd,buf, 5); //SENDS DATA TO RECEIVER AGAIN
+        timeout=0;
         stateMachine.currState=START;
         alarm(MAX_TIME);
       }
       res = read(fd,buf,1);   /* returns after 1 char have been input */
       buf[res]=0;               /* so we can printf... */
-    
-      printf("sender-char received:%#x:%d\n", buf[0], res);
+
+      if(res != -1){
+        printf("Sender received:%#x:%d\n", buf[0], res);
+
+      }
       
       updateStateMachine(&stateMachine, buf, identity);
     
