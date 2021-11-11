@@ -1,7 +1,7 @@
 /*Non-Canonical Input Processing*/
 #include "macros.h"
 #include "stateMachine.h"
-
+#include "alarme.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -86,18 +86,24 @@ int main(int argc, char** argv)
 
 
     res = write(fd,buf, 5);   //Sends the data to the receiver
+    signal(SIGALRM,atende);
+    
+    alarm(MAX_TIME);
     printf("%d bytes written\n", res);
 
 
     stateMachine_st stateMachine;
 
     while (stateMachine.currState!=STOP) {       /* loop for input */
+      if(flag==1)
+        printf("alarme\n");//sigalarm foi emitido
+
       res = read(fd,buf,1);   /* returns after 1 char have been input */
       buf[res]=0;               /* so we can printf... */
       printf(":%#x:%d\n", buf[0], res);
 
       updateStateMachine(&stateMachine, buf, identity);
-
+    
     }
 
 

@@ -44,6 +44,7 @@ void updateStateMachine(stateMachine_st *currStateMachine, char *buf, int identi
         case BCC_OK:
             if(buf[0] == FLAG){
                 currStateMachine->currState = STOP;
+                alarm(0);
             }
             break;
     }

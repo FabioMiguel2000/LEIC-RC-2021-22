@@ -1,7 +1,7 @@
 
 /*      FLAG F    */
 #define FLAG 0b01111110            //  (0x7E)Flag de inicio ou fim
-
+#define MAX_TIME 3                //tempo maximo de espera para reenvio de trama SET por emissor
 /*      Campo de endereco A       */
 #define A_CERR 0b00000011       // (0x03)Comandos enviados pelo Emissor e Respostas enviadas pelo Receptor
 #define A_CRRE 0b00000001       // (0x01)Comandos enviados pelo Receptor e Respostas enviadas pelo Emissor
