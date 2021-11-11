@@ -108,7 +108,7 @@ int main(int argc, char** argv)
       }
       res = read(fd,buf,1);   /* returns after 1 char have been input */
       buf[res]=0;               /* so we can printf... */
-      printf(":%#x:%d\n", buf[0], res);
+      //printf(":%#x:%d\n", buf[0], res);
 
       updateStateMachine(&stateMachine, buf, identity);
     
