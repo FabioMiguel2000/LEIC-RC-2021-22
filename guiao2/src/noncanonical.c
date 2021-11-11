@@ -81,7 +81,6 @@ int main(int argc, char** argv)
     stateMachine_st stateMachine;
     stateMachine.currState=START;
     while (stateMachine.currState!=STOP) {       /* loop for input */
-      printf("entrou receiver\n");
       res = read(fd,buf,1);   /* returns after 1 char have been input */
       buf[res]=0;               /* so we can printf... */
 
