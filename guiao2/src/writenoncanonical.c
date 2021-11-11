@@ -88,7 +88,7 @@ int main(int argc, char** argv)
     res = write(fd,buf, 5);   //Sends the data to the receiver
     signal(SIGALRM,atende);
     
-    alarm(5);
+    alarm(3);
     flag=0;
     conta=0;
     printf("%d bytes written\n", res);
@@ -100,11 +100,13 @@ int main(int argc, char** argv)
     while (stateMachine.currState!=STOP) {       /* loop for input */
     
       if(flag==1){
+        if(conta>=4)
+          return 1;
         printf("alarme conta=%d\n",conta);//sigalarm foi emitido
         res = write(fd,buf, 5);//SENDS DATA TO RECEIVER AGAIN
         flag=0;
         stateMachine.currState=START;
-        alarm(5);
+        alarm(3);
       }
       res = read(fd,buf,1);   /* returns after 1 char have been input */
       buf[res]=0;               /* so we can printf... */
