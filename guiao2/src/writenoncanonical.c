@@ -88,7 +88,7 @@ int main(int argc, char** argv)
     res = write(fd,buf, 5);   //Sends the data to the receiver
     signal(SIGALRM,atende);
     
-    alarm(MAX_TIME);
+    alarm(10);
     printf("%d bytes written\n", res);
 
 
