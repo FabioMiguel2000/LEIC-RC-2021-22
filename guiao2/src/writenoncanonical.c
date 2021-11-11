@@ -89,6 +89,8 @@ int main(int argc, char** argv)
     signal(SIGALRM,atende);
     
     alarm(10);
+    flag=0;
+    conta=0;
     printf("%d bytes written\n", res);
 
 
