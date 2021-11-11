@@ -95,7 +95,11 @@ int main(int argc, char** argv)
     buf[4] = FLAG;
     
     res = write(fd,buf, 5);  //Sends it back to the sender
-    printf("%d bytes written\n", res);
+    
+    printf("receiver: %d bytes written:\n", res);
+    for(int i=0;i<5;i++){
+      printf("Receiver Buffer:%d\n",buf[i]);
+    }
   /* 
     O ciclo WHILE deve ser alterado de modo a respeitar o indicado no gui�o 
   */
