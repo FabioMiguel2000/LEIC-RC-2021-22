@@ -1,7 +1,6 @@
 
 #include "alarme.h"
 
-#include "writenoncanonical.c"
 
 void atende()                   // atende alarme
 {
