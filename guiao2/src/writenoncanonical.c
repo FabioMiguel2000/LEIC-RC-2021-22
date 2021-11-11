@@ -97,6 +97,7 @@ int main(int argc, char** argv)
     stateMachine_st stateMachine;
 
     while (stateMachine.currState!=STOP) {       /* loop for input */
+    printf("entroustatemachine\n");
       if(flag==1)
         printf("alarme\n");//sigalarm foi emitido
 
