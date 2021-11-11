@@ -20,7 +20,7 @@
 
 volatile int stop=FALSE;
 int identity = SENDER;
-
+extern int flag,conta;
 int main(int argc, char** argv)
 {
     int fd,c, res;
