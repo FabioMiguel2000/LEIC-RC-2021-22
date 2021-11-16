@@ -1,18 +1,16 @@
 CC = gcc
 CFLAGS = -Wall
-TARGETS = receiver sender
-SRCS = stateMachine.c
+TARGET = application
+SRCS = application.c log.c alarme.c stateMachine.c
+OBJS = $(SRCS:.c=.o)
 
-
-all: $(TARGETS)
-
-sender: writenoncanonical.c $(SRCS) alarme.c
+application: $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@
 
-receiver: noncanonical.c $(SRCS)
-	$(CC) $(CFLAGS) $^ -o $@
+%.o: %.c %.h
+	$(CC) $(CFLAGS) -MMD -c $< -o $@ 
 
 clean:
-	rm $(TARGETS)
+	rm *.o *.d $(TARGET)
 
 # sudo socat -d  -d  PTY,link=/dev/ttyS10,mode=777   PTY,link=/dev/ttyS11,mode=777

@@ -1,12 +1,16 @@
 
-#define MAX_BUF 255
+#define MAX_SIZE 255
 #define TRANSMITTER 0
 #define RECEIVER    1
 
 
+#define BAUDRATE B38400
+#define TIME_OUT 3               //tempo maximo de espera para reenvio de trama SET por emissor
+#define TIME_OUT_CHANCES 3        //Numero de tentativas de timeout 
+
+
 /*      FLAG F    */
 #define FLAG 0b01111110            //  (0x7E)Flag de inicio ou fim
-#define MAX_TIME 3               //tempo maximo de espera para reenvio de trama SET por emissor
 /*      Campo de endereco A       */
 #define A_CERR 0b00000011       // (0x03)Comandos enviados pelo Emissor e Respostas enviadas pelo Receptor
 #define A_CRRE 0b00000001       // (0x01)Comandos enviados pelo Receptor e Respostas enviadas pelo Emissor
@@ -29,6 +33,3 @@
 /*              Identity                    */
 #define SENDER 0
 #define RECEIVER 1
-#define ESCAPE 0x7d 
-#define FLAG_ESC 0x5E
-#define ESC_ESC 0x5D
