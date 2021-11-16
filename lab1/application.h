@@ -25,6 +25,10 @@ struct linkLayer {
 
 void parseArgs(int argc, char** arg);
 
+void initLinkLayer(char *port);
+
+void parseArgs(int argc, char** argv);
+
 int main(int argc, char** arg);
 
 #endif

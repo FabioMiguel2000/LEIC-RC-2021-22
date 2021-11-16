@@ -8,12 +8,12 @@ void parseArgs(int argc, char** argv){
     if(argc == 2 && strcmp("/dev/ttyS10", argv[1])==0){
         applicationLayer.status = TRANSMITTER;
         initLinkLayer(argv[1]);
-        return 1;
+        return;
     }
     if(argc == 2 && strcmp("/dev/ttyS11", argv[1])==0){
         applicationLayer.status = RECEIVER;
         initLinkLayer(argv[1]);
-        return 1;
+        return;
     }
     logError("Usage:\t./application <serialPort>\nFor receiver: use port /dev/ttyS10\nFor transmitter: user port /dev/ttyS11");
     exit(-1);
@@ -117,7 +117,6 @@ int transmitter(){
 int receiver(){
     int fd, res;
     char buf[MAX_SIZE];
-    char msg[MAX_SIZE];
     fd = llopen(applicationLayer.status);
     if(fd< 0){
         logError(">>>Could not open receiver serial port");
@@ -144,6 +143,7 @@ int receiver(){
     for(int i=0;i<5;i++){
       printf("Receiver Buffer:%#x\n",buf[i]);
     }
+    return 0;
 }
 
 int main(int argc, char** argv){

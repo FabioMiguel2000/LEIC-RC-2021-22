@@ -1,16 +1,18 @@
 CC = gcc
 CFLAGS = -Wall
 TARGET = application
-SRCS = application.c log.c alarme.c stateMachine.c
-OBJS = $(SRCS:.c=.o)
+OBJS = application.o alarme.o log.o stateMachine.o
+DEPS = $(OBJS:.o=.h) macros.h utils.h
 
-application: $(OBJS)
-	$(CC) $(CFLAGS) $^ -o $@
+%.o: %.c $(DEPS)
+	$(CC) $(CFLAGS) -c -o $@ $<
 
-%.o: %.c %.h
-	$(CC) $(CFLAGS) -MMD -c $< -o $@ 
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
+
+.PHONY: clean
 
 clean:
-	rm *.o *.d $(TARGET)
+	rm $(TARGET) $(OBJS)
 
 # sudo socat -d  -d  PTY,link=/dev/ttyS10,mode=777   PTY,link=/dev/ttyS11,mode=777
