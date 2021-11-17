@@ -1,19 +1,16 @@
-
-#define MAX_SIZE 255
+#pragma once
+#define MAX_BUF 255
 #define TRANSMITTER 0
 #define RECEIVER    1
 
-
-#define BAUDRATE B38400
-#define TIME_OUT 3               //tempo maximo de espera para reenvio de trama SET por emissor
-#define TIME_OUT_CHANCES 3        //Numero de tentativas de timeout 
+#define MAX_TIME 3               //  Tempo de espera até reenvio de trama SET pelo Emissor
 
 
 /*      FLAG F    */
-#define FLAG 0b01111110            //  (0x7E)Flag de inicio ou fim
-/*      Campo de endereco A       */
-#define A_CERR 0b00000011       // (0x03)Comandos enviados pelo Emissor e Respostas enviadas pelo Receptor
-#define A_CRRE 0b00000001       // (0x01)Comandos enviados pelo Receptor e Respostas enviadas pelo Emissor
+#define FLAG 0b01111110          //  (0x7E) Flag que marca inicio e fim de cada Trama
+// octeto A : endereco 
+#define A_SENDER 0b00000011      //  (0x03)   Comandos enviados pelo Emissor e Respostas enviadas pelo Receptor
+#define A_RECEIVER 0b00000001    //  (0x01)     Comandos enviados pelo Receptor e Respostas enviadas pelo Emissor
 
 /*      Campo de controlo C     */
 
@@ -27,7 +24,7 @@
 
 /*      Campo de Proteção (cabeçalho)    */
 
-#define BCC(a,c) (a ^ c)                    // XOR entre Campo A e C
+//#define BCC(a,c) (a ^ c)                    // XOR entre Campo A e C
 
 
 /*              Identity                    */
@@ -36,3 +33,6 @@
 #define ESCAPE 0x7d 
 #define FLAG_ESC 0x5E
 #define ESC_ESC 0x5D
+
+// Information Frames (I)
+#define CS(seq) ((seq == 0)? 0x0 : 0x40)

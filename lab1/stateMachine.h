@@ -14,5 +14,5 @@ typedef struct {
 }stateMachine_st;
 
 void updateStateMachine(stateMachine_st *currStateMachine, char *buf, int identity);
-
+void updateStateMachineI(stateMachine_st *currStateMachine, char *buf, int identity);
 #endif
