@@ -1,4 +1,6 @@
-#include "application.h"
+#include "application.h"´
+#include "msg.h"
+#include "data_stuffing.h"
 
 
 struct applicationLayer applicationLayer;
@@ -177,7 +179,8 @@ int main(int argc, char** argv){
         transmitter();
     }
     return 0;*/
-      unsigned char data[]={0xaa,0x42,ESCAPE,0x3e,FLAG,0x11};
+    
+  unsigned char data[]={0xaa,0x42,ESCAPE,0x3e,FLAG,0x11};
   int sqnum = 1;
   int frame_size;
   unsigned char* frame;
