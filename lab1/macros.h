@@ -33,3 +33,6 @@
 /*              Identity                    */
 #define SENDER 0
 #define RECEIVER 1
+#define ESCAPE 0x7d 
+#define FLAG_ESC 0x5E
+#define ESC_ESC 0x5D
