@@ -168,7 +168,7 @@ int receiver(){
 
 
 int main(int argc, char** argv){
-    parseArgs(argc, argv);
+    /*parseArgs(argc, argv);
     if(applicationLayer.status == RECEIVER){
         receiver();
     }
@@ -176,6 +176,39 @@ int main(int argc, char** argv){
     {
         transmitter();
     }
-    return 0;
+    return 0;*/
+      unsigned char data[]={0xaa,0x42,ESCAPE,0x3e,FLAG,0x11};
+  int sqnum = 1;
+  int frame_size;
+  unsigned char* frame;
+
+  frame=build_info_frame(data, sizeof(data), sqnum, &frame_size);
+  
+
+  printf("\n\nDados originais:\n");
+  for(int i=0; i<sizeof(data);i++)
+    printf("%02X ",data[i]);
+
+  printf("\n\nFrame:\n");
+  for(int i=0; i<frame_size;i++)
+    printf("%02X ",frame[i]);  
+
+
+  int stuff_size;
+  unsigned char* stuffed=stuffing(frame, sizeof(data)+6,&stuff_size);
+  printf("\n\nStuffed data:\n");
+  for(int i=0; i<stuff_size;i++)
+    printf("%02X ",stuffed[i]);
+
+  unsigned char* unstuffed;
+  int data_size;
+  unstuffed=unstuffing(stuffed, stuff_size,&data_size);
+
+  printf("\n\nUnStuffed data:\n");
+  for(int i=0; i<data_size;i++)
+    printf("%02X ",unstuffed[i]);
+
+  return 0;
+
     
 }

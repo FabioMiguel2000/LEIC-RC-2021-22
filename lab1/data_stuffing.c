@@ -34,7 +34,7 @@ unsigned char* stuffing(unsigned char data[],int size_data, int* stuff_size){
 }
 
 
-unsigned char* unstuffing(unsigned char stuffed[],int stuffed_size, int* data_size){
+unsigned char* destuffing(unsigned char stuffed[],int stuffed_size, int* data_size){
     unsigned char* data=(unsigned char *)malloc(stuffed_size);
     data[0]=stuffed[0];
     int data_index=1;
