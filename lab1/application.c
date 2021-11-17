@@ -118,6 +118,10 @@ int transmitter(){
     return 0;
 }
 
+int prepareFrameI(){
+    
+}
+
 int receiver(){
     int fd, res;
     char buf[MAX_SIZE];
@@ -152,8 +156,16 @@ int receiver(){
     // for(int i=0;i<5;i++){
     //   printf("Receiver Buffer:%#x\n",buf[i]);
     // }
+
+
+    // waiting to receive frame I
+    
+
+
     return 0;
 }
+
+
 
 int main(int argc, char** argv){
     parseArgs(argc, argv);
