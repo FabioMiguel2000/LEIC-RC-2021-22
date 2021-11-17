@@ -3,6 +3,7 @@
 
 struct applicationLayer applicationLayer;
 struct linkLayer linkLayer;
+extern int timeout,timeoutCount;
 
 void parseArgs(int argc, char** argv){
     if(argc == 2 && strcmp("/dev/ttyS10", argv[1])==0){
@@ -15,21 +16,21 @@ void parseArgs(int argc, char** argv){
         initLinkLayer(argv[1]);
         return;
     }
-    logError("Usage:\t./application <serialPort>\nFor receiver: use port /dev/ttyS10\nFor transmitter: user port /dev/ttyS11");
+    logUsage();
     exit(-1);
 }
 
 int llopen(int type){
     int fd;
     struct termios oldtio,newtio;
-    fd = open(linkLayer.port, O_RDWR | O_NOCTTY);
+    fd = open(linkLayer.port, O_RDWR | O_NOCTTY| O_NONBLOCK);
     if (fd <0) {
-        logError("Function llopen(), could not open port!");
+        logError("Function llopen(), could not open port!\n");
         exit(-1); 
     }
 
     if ( tcgetattr(fd,&oldtio) == -1) { /* save current port settings */
-        logError("Function llopen(), error on tcgetattr()!");
+        logError("Function llopen(), error on tcgetattr()!\n");
         exit(-1);
     }
 
@@ -49,7 +50,7 @@ int llopen(int type){
     tcflush(fd, TCIOFLUSH);
 
     if ( tcsetattr(fd,TCSANOW,&newtio) == -1) {
-        logError("Function llopen(), error on tcgetattr()!");
+        logError("Function llopen(), error on tcgetattr()!\n");
         exit(-1);
     }
     logSuccess("New termios structure set\n");
@@ -70,9 +71,10 @@ int transmitter(){
     char msg[MAX_SIZE];
     fd = llopen(applicationLayer.status);
     if(fd< 0){
-        logError(">>>Could not open transmitter serial port");
+        logError(">>>Could not open transmitter serial port\n");
         exit(-1);
     }
+    logSuccess("Transmitter ready!\n");
     buf[0] = FLAG;
     buf[1] = A_CERR;
     buf[2] = C_SET;
@@ -102,6 +104,8 @@ int transmitter(){
         stateMachine.currState=START;
         alarm(TIME_OUT);
       }
+
+
       res = read(fd,buf,1);   /* returns after 1 char have been input */
       buf[res]=0;               /* so we can printf... */
 
@@ -117,18 +121,23 @@ int transmitter(){
 int receiver(){
     int fd, res;
     char buf[MAX_SIZE];
+    char msg[MAX_SIZE];
     fd = llopen(applicationLayer.status);
     if(fd< 0){
-        logError(">>>Could not open receiver serial port");
+        logError(">>>Could not open receiver serial port\n");
         exit(-1);
     }
+    logSuccess("Receiver ready!\n");
     stateMachine_st stateMachine;
     stateMachine.currState=START;
     while (stateMachine.currState!=STOP) {       /* loop for input */
       res = read(fd,buf,1);   /* returns after 1 char have been input */
       buf[res]=0;               /* so we can printf... */
 
-      printf(":%#x:%d\n", buf[0], res);
+    if(res != -1){
+        sprintf(msg, "Received from Transmitter:%#x:%d\n", buf[0], res);
+        logInfo(msg);
+    }
       updateStateMachine(&stateMachine, buf, applicationLayer.status);
     }
     buf[0] = FLAG;
@@ -139,10 +148,10 @@ int receiver(){
     
     res = write(fd,buf, 5);  //Sends it back to the sender
     
-    printf("Receiver: %d bytes written:\n", res);
-    for(int i=0;i<5;i++){
-      printf("Receiver Buffer:%#x\n",buf[i]);
-    }
+    printf("Receiver: %d bytes written\n", res);
+    // for(int i=0;i<5;i++){
+    //   printf("Receiver Buffer:%#x\n",buf[i]);
+    // }
     return 0;
 }
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "log.h"
+
 #include <unistd.h>
 #include <signal.h>
 #include <stdio.h>

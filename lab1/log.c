@@ -17,3 +17,10 @@ void logInfo(char *msg){
     sprintf(buf, ">>>Info:\t%s\n", msg);
     write(STDOUT_FILENO, buf, strlen(buf));
 }
+
+void logUsage(){
+    char buf[MAX_SIZE];
+    sprintf(buf, "Usage:\t./application <serialPort>\nFor receiver: use port /dev/ttyS10\nFor transmitter: use port /dev/ttyS11\n");
+    write(STDOUT_FILENO, buf, strlen(buf));
+    
+}
