@@ -17,7 +17,7 @@ unsigned char bcc2(unsigned char *data, int start_pos, int lenght){
 unsigned char* build_info_frame(unsigned char *data, int data_size, int sqnum, int* frame_size){
   unsigned char*frame = (unsigned char*)malloc(data_size+6);
   frame[0]=FLAG;
-  frame[1]=A_SENDER;
+  frame[1]=A_CERR;//A_SENDER
   frame[2]=CS(sqnum);
   frame[3]=bcc1(frame[1],frame[2]);
   for(int i=0;i<data_size;i++)
@@ -38,4 +38,4 @@ unsigned char* build_ctrl_frame(char field_A, char command){
   return frame;
 }
 
-/     build_ctrl_frame(A_SENDER,SET)
+/     build_ctrl_frame(A_CERR,SET)
