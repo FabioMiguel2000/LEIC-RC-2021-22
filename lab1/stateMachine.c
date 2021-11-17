@@ -50,7 +50,7 @@ void updateStateMachine(stateMachine_st *currStateMachine, char *buf, int identi
             break;
     }
 }
-void updateStateMachineI(stateMachine_st *currStateMachine, char *buf, int identity){
+/*void updateStateMachineI(stateMachine_st *currStateMachine, char *buf, int identity){
     switch(currStateMachine->currState){
         case START:
             if(buf[0]==FLAG){
@@ -61,7 +61,7 @@ void updateStateMachineI(stateMachine_st *currStateMachine, char *buf, int ident
                 currStateMachine->currState=A_RCV;
 
             }
-        case 
+        
     }
-}
+}*/
 
