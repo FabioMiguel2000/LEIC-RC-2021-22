@@ -1,4 +1,4 @@
-#include "application.h"´
+#include "application.h"
 #include "msg.h"
 #include "data_stuffing.h"
 
