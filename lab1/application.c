@@ -121,7 +121,7 @@ int transmitter(){
 }
 
 int prepareFrameI(){
-    
+   return 0; 
 }
 
 int receiver(){
@@ -205,7 +205,7 @@ int main(int argc, char** argv){
 
   unsigned char* unstuffed;
   int data_size;
-  unstuffed=unstuffing(stuffed, stuff_size,&data_size);
+  unstuffed=detuffing(stuffed, stuff_size,&data_size);
 
   printf("\n\nUnStuffed data:\n");
   for(int i=0; i<data_size;i++)

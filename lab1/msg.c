@@ -37,5 +37,4 @@ unsigned char* build_ctrl_frame(char field_A, char command){
   frame[4]=field_A;
   return frame;
 }
-
-/     build_ctrl_frame(A_CERR,SET)
+//    build_ctrl_frame(A_CERR,SET)
