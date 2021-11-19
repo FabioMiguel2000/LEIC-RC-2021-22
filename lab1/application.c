@@ -3,11 +3,17 @@
 
 struct applicationLayer applicationLayer;
 struct linkLayer linkLayer;
+struct dataFile dataFile;
 extern int timeout,timeoutCount;
 
 int parseArgs(int argc, char** argv){
-    if(argc == 2 && strcmp("/dev/ttyS10", argv[1])==0){
+    if(argc == 3 && strcmp("/dev/ttyS10", argv[2])==0){
         applicationLayer.status = TRANSMITTER;
+        strcpy(dataFile.filename, argv[1]);
+        struct stat fileInfo;
+        stat(dataFile.filename, &fileInfo);
+        dataFile.filesize = fileInfo.st_size;
+        // printf("filename: %s\n", dataFile.filename);
         return 10;
     }
     if(argc == 2 && strcmp("/dev/ttyS11", argv[1])==0){
@@ -204,7 +210,39 @@ int transmitter_SET(int fd){
 //     printf("read data: %s\n", file_contents);
 //     close(fd);
 // }
+int sendControlPacket(){
 
+    printf("File size: %ld bytes\n", dataFile.filesize);
+    char controlPacket[MAX_SIZE];
+
+    //  Build control packet
+    controlPacket[0] = CTRL_PACK_C_START;          
+    controlPacket[1] = CTRL_PACK_T_SIZE;
+    controlPacket[2] = sizeof(dataFile.filesize);
+    memcpy(&controlPacket[3], &dataFile.filesize, sizeof(dataFile.filesize));
+
+    controlPacket[3 + sizeof(dataFile.filesize)] = CTRL_PACK_T_NAME;
+    controlPacket[4+sizeof(dataFile.filesize)] = strlen(dataFile.filename);
+    memcpy(&controlPacket[5+sizeof(dataFile.filesize)], &dataFile.filename, strlen(dataFile.filename));
+
+    printf("strlen of control packet: %li\n", strlen(controlPacket));
+    printf("Sum value of control packet: %li\n", strlen(dataFile.filename) + 5 + sizeof(dataFile.filesize));
+
+    // for(int i = 0; i < (strlen(dataFile.filename) + 5 + sizeof(dataFile.filesize)); i++){
+    //     if(i >= strlen(dataFile.filename) + 5){
+    //         printf("control packet [%i] = %c\n", i, controlPacket[i]);
+    //         continue;
+    //     }
+    //     printf("control packet [%i] = %#x\n", i, controlPacket[i]);
+    // }
+
+    return 0;
+
+} 
+
+int llwrite(int fd, char *buffer, int length){
+    return 0;
+}
 
 
 int main(int argc, char** argv){
@@ -216,6 +254,19 @@ int main(int argc, char** argv){
     int fd = llopen(portNum, applicationLayer.status);
     if(fd < 0){
         exit(-1);
+    }
+    switch (applicationLayer.status)
+    {
+    case TRANSMITTER:
+        if(sendControlPacket() < -1){
+            exit(-1);
+        }
+        break;
+    case RECEIVER:
+
+        break;
+    default:
+        break;
     }
     // prepareFrameI();
 

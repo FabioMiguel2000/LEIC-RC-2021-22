@@ -7,6 +7,7 @@
 void logError(char *msg);
 void logSuccess(char *msg);
 void logInfo(char *msg);
+void logWarning(char *msg);
 void logUsage();
 
 

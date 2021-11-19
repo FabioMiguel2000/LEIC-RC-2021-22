@@ -8,6 +8,14 @@
 #define TIME_OUT_SCS 3               //tempo maximo de espera para reenvio de trama SET por emissor
 #define TIME_OUT_CHANCES 3        //Numero de tentativas de timeout 
 
+/*          Control Packge        */
+#define CTRL_PACK_C_DATA    0x01
+#define CTRL_PACK_C_START   0x02
+#define CTRL_PACK_C_END     0x03
+
+#define CTRL_PACK_T_SIZE    0x00
+#define CTRL_PACK_T_NAME    0x01
+
 
 /*      FLAG F    */
 #define FLAG 0b01111110            //  (0x7E)Flag de inicio ou fim

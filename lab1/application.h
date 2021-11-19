@@ -13,6 +13,11 @@ struct applicationLayer {
     int status;                     /*TRANSMITTER | RECEIVER*/
 };
 
+struct dataFile {
+    char filename[MAX_SIZE];
+    off_t filesize;
+};
+
 
 struct linkLayer {
     char port[20];                  /*Dispositivo /dev/ttySx, x = 0, 1*/
@@ -38,5 +43,7 @@ int receiver_UA(int fd);
 int transmitter_SET(int fd);
 
 int prepareFrameI();
+
+int sendControlPacket();
 
 #endif
