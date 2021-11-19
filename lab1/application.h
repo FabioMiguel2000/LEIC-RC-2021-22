@@ -23,12 +23,20 @@ struct linkLayer {
     char frame[MAX_SIZE];           /*Trama*/
 };
 
-void parseArgs(int argc, char** arg);
+int parseArgs(int argc, char** arg);
 
-void initLinkLayer(char *port);
+int llopen(int portNum, int indentity);
 
-void parseArgs(int argc, char** argv);
+void getFrame_UA(char *buf);
+
+void getFrame_SET(char *buf);
 
 int main(int argc, char** arg);
+
+int receiver_UA(int fd);
+
+int transmitter_SET(int fd);
+
+int prepareFrameI();
 
 #endif

@@ -5,7 +5,7 @@
 
 
 #define BAUDRATE B38400
-#define TIME_OUT 3               //tempo maximo de espera para reenvio de trama SET por emissor
+#define TIME_OUT_SCS 3               //tempo maximo de espera para reenvio de trama SET por emissor
 #define TIME_OUT_CHANCES 3        //Numero de tentativas de timeout 
 
 
