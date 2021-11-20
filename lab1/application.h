@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "log.h"
 #include "alarme.h"
+#include "data_stuffing.h"
 #include "stateMachine.h"
 
 struct applicationLayer {

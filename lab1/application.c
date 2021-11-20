@@ -118,9 +118,6 @@ int transmitter(){
     return 0;
 }
 
-int prepareFrameI(){
-    
-}
 
 int receiver(){
     int fd, res;
@@ -168,14 +165,6 @@ int receiver(){
 
 
 int main(int argc, char** argv){
-    parseArgs(argc, argv);
-    if(applicationLayer.status == RECEIVER){
-        receiver();
-    }
-    else if (applicationLayer.status == TRANSMITTER)
-    {
-        transmitter();
-    }
-    return 0;
+    stuffing(0);
     
 }
