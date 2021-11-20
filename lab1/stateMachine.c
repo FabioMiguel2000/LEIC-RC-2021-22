@@ -1,7 +1,7 @@
 #include "stateMachine.h"
 
 
-void updateStateMachine(stateMachine_st *currStateMachine, unsigned char * buf, int identity){
+void updateStateMachine(stateMachine_st *currStateMachine, unsigned char buf, int identity){
     switch(currStateMachine->currState){
         case START: 
             if(buf == FLAG){
@@ -52,7 +52,7 @@ void updateStateMachine(stateMachine_st *currStateMachine, unsigned char * buf, 
 }
 
 
-void updateStateMachineInformation(stateMachine_st *currStateMachine, unsigned char * buf, int *ch){
+void updateStateMachineInformation(stateMachine_st *currStateMachine, unsigned char  buf, int *ch){
     switch (currStateMachine->currState) {  
         case START:
             if(buf == FLAG) 
