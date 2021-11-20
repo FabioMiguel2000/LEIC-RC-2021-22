@@ -210,6 +210,7 @@ int transmitter_SET(int fd){
 //     printf("read data: %s\n", file_contents);
 //     close(fd);
 // }
+
 int sendControlPacket(){
 
     printf("File size: %ld bytes\n", dataFile.filesize);
@@ -245,30 +246,47 @@ int llwrite(int fd, char *buffer, int length){
 }
 
 
-int main(int argc, char** argv){
-    int portNum = parseArgs(argc, argv);
-    if( portNum < 0){
-        logUsage();
-        exit(-1);
+void DataStuffing_TEST(){
+    char data[MAX_SIZE];
+    char expected[] = {0x7d, 0x5e, 0x01, 0x02, 0x7d, 0x5d, 0x7d, 0x5d, 0xff};
+    data[0] = FLAG;
+    data[1] = 0x01;
+    data[2] = 0x02;
+    data[3] = ESCAPE;
+    data[4] = ESCAPE;
+    data[5] = 0xFF;
+    char *stuffedData;
+    stuffedData = stuffing(data, sizeof(data));
+    for(int i = 0; i < sizeof(stuffedData); i ++){
+        printf("data at position [%i] = %#x\texpected: %#x\n", i, stuffedData[i], expected[i]);
     }
-    int fd = llopen(portNum, applicationLayer.status);
-    if(fd < 0){
-        exit(-1);
-    }
-    switch (applicationLayer.status)
-    {
-    case TRANSMITTER:
-        if(sendControlPacket() < -1){
-            exit(-1);
-        }
-        break;
-    case RECEIVER:
+}
 
-        break;
-    default:
-        break;
-    }
+int main(int argc, char** argv){
+    // int portNum = parseArgs(argc, argv);
+    // if( portNum < 0){
+    //     logUsage();
+    //     exit(-1);
+    // }
+    // int fd = llopen(portNum, applicationLayer.status);
+    // if(fd < 0){
+    //     exit(-1);
+    // }
+    // switch (applicationLayer.status)
+    // {
+    // case TRANSMITTER:
+    //     if(sendControlPacket() < -1){
+    //         exit(-1);
+    //     }
+    //     break;
+    // case RECEIVER:
+
+    //     break;
+    // default:
+    //     break;
+    // }
     // prepareFrameI();
+    DataStuffing_TEST();
 
     return 0;
     
