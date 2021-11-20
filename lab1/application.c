@@ -69,7 +69,7 @@ void initLinkLayer(char *port){
 
 int transmitter(){
     int fd, res;
-    char buf[MAX_SIZE];
+    unsigned char buf[MAX_SIZE];
     char msg[MAX_SIZE];
     fd = llopen(applicationLayer.status);
     if(fd< 0){
