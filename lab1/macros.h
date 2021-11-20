@@ -39,3 +39,4 @@
 
 // Information Frames (I)
 #define CS(seq) ((seq == 0)? 0x0 : 0x40)
+#define BCC(a,c) (a ^ c)                    // XOR entre Campo A e C
