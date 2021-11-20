@@ -4,15 +4,16 @@
 #include "macros.h"
 
 
-enum stateMachine { START, FLAG_RCV, A_RCV, C_RCV, BCC_OK, STOP};
+enum stateMachine { START, FLAG_RCV, A_RCV, C_RCV, BCC1_OK, INFO, STOP};
 
 typedef struct {
     enum stateMachine currState;
-    char A_field;
-    char C_field;
-
+    unsigned char A_field;
+    unsigned char C_field;
+    char A_Expected;  //valor esperado no campo A (Command) em função do comando que está a ser recebido
+    char C_Expected;	//valor esperado no campo C (Command) em função do comando que está a ser recebido
 }stateMachine_st;
 
-void updateStateMachine(stateMachine_st *currStateMachine, char *buf, int identity);
-void updateStateMachineI(stateMachine_st *currStateMachine, char *buf, int identity);
+void updateStateMachine(stateMachine_st *currStateMachine, unsigned char buf, int identity);
+void state_machine_information(stateMachine_st *currStateMachine, unsigned char buf, int *ch);
 #endif

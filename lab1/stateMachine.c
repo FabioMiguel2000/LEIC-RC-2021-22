@@ -1,48 +1,48 @@
 #include "stateMachine.h"
 
 
-void updateStateMachine(stateMachine_st *currStateMachine, char *buf, int identity){
+void updateStateMachine(stateMachine_st *currStateMachine, unsigned char buf, int identity){
     switch(currStateMachine->currState){
         case START: 
-            if(buf[0] == FLAG){
+            if(buf == FLAG){
                 currStateMachine->currState = FLAG_RCV;
             }
             break;
         case FLAG_RCV:
-            if(buf[0] == A_CERR){
+            if(buf == currStateMachine->A_Expected){
                 currStateMachine->currState = A_RCV;
-                currStateMachine->A_field = buf[0];
+                currStateMachine->A_field = buf;
             }
-            else if(buf[0] != FLAG){
+            else if(buf != FLAG){
                 currStateMachine->currState = START;
             }
             break;
         case A_RCV:
-            if((identity == RECEIVER && buf[0] == C_SET) || (identity == SENDER && buf[0] == C_UA)){
+            if(buf == currStateMachine->C_Expected){
                 currStateMachine->currState = C_RCV;
-                currStateMachine->C_field = buf[0];
+                currStateMachine->C_field = buf;
             }
-            else if(buf[0] == FLAG){
-                currStateMachine->currState = FLAG_RCV;
-            }
-            else if(buf[0] != FLAG){
-                currStateMachine->currState = START;
-            }
+            else if(buf == FLAG){
+                    currStateMachine->currState = FLAG_RCV;
+                }
+                else {
+                    currStateMachine->currState = START;
+                }
             break;
         case C_RCV:
-            if(buf[0] == (currStateMachine->A_field ^ currStateMachine->C_field)){ //Check BCC
-                currStateMachine->currState = BCC_OK;
+            if(buf == (currStateMachine->A_field ^ currStateMachine->C_field)){ //Check BCC
+                currStateMachine->currState = BCC1_OK;
             }
-            else if(buf[0] == FLAG){
-                currStateMachine->currState = FLAG_RCV;
+            else if(buf == FLAG){
+                    currStateMachine->currState = FLAG_RCV;
 
             }
-            else if(buf[0] != FLAG){
-                currStateMachine->currState = START;
-            }
+                else {
+                    currStateMachine->currState = START;
+                }
             break;
-        case BCC_OK:
-            if(buf[0] == FLAG){
+        case BCC1_OK:
+            if(buf == FLAG){
                 currStateMachine->currState = STOP;
             }
             break;
@@ -50,18 +50,56 @@ void updateStateMachine(stateMachine_st *currStateMachine, char *buf, int identi
             break;
     }
 }
-/*void updateStateMachineI(stateMachine_st *currStateMachine, char *buf, int identity){
-    switch(currStateMachine->currState){
+
+
+void updateStateMachineInformation(stateMachine_st *currStateMachine, unsigned char buf, int *ch){
+    switch (currStateMachine->currState) {  
         case START:
-            if(buf[0]==FLAG){
-                currStateMachine->currState=A_CRRE;
-                break;
+            if(buf == FLAG) 
+                currStateMachine->currState = FLAG_RCV;
+            break;
+        case FLAG_RCV:
+            if(buf == A_CERR) 
+                currStateMachine->currState = A_RCV;
+            else 
+                if(buf == FLAG) 
+                    currStateMachine->currState = FLAG_RCV;
+                else 
+                    currStateMachine->currState = START;
+            break;
+        case A_RCV:
+            if(buf == CS(0) || buf == CS(1)) { 
+                *ch = buf;
+                currStateMachine->currState = C_RCV;
             }
-            if(buf[0]==FLAG_RCV){
-                currStateMachine->currState=A_RCV;
-
-            }
-        
+            else 
+                if(buf == FLAG) 
+                    currStateMachine->currState = FLAG_RCV;
+                else 
+                    currStateMachine->currState = START;
+            break;
+        case C_RCV:
+            if(buf == (A_CERR ^ *ch)) 
+	              currStateMachine->currState = BCC1_OK;
+            else 
+	              if(buf == FLAG) 
+	                  currStateMachine->currState = FLAG_RCV;
+        	      else 
+                    currStateMachine->currState = START;
+            break;
+        case BCC1_OK:
+            if(buf != FLAG && buf!=0) 
+                currStateMachine->currState = INFO;
+            else 
+                currStateMachine->currState = START;
+            break;    
+        case INFO:
+            if (buf == FLAG) 
+                currStateMachine->currState = STOP;
+            break;
+        case STOP: break;    
+        default:
+            currStateMachine->currState = START;
+            break;
     }
-}*/
-
+}

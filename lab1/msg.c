@@ -28,13 +28,13 @@ unsigned char* build_info_frame(unsigned char *data, int data_size, int sqnum, i
   return frame;
 }
 
-unsigned char* build_ctrl_frame(char field_A, char command){
+unsigned char* build_ctrl_frame(char address, char command){
   unsigned char*frame = (unsigned char*)malloc(5);
   frame[0]=FLAG;
-  frame[1]=field_A;
+  frame[1]=address;
   frame[2]=command;
   frame[3]=bcc1(frame[1],frame[2]);
-  frame[4]=field_A;
+  frame[4]=FLAG;
   return frame;
 }
 //    build_ctrl_frame(A_CERR,SET)
