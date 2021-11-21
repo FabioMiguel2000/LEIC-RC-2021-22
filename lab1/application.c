@@ -1,4 +1,6 @@
 #include "application.h"
+#include "msg.h"
+#include "data_stuffing.h"
 
 
 struct applicationLayer applicationLayer;
@@ -23,14 +25,14 @@ int parseArgs(int argc, char** argv){
     return -1;
 }
 
-int llopen(int portNum, int indentity){
+int llopen(int portNum, int identity){
     int fd;
 
     //  initiate linkLayer struct 
     sprintf(linkLayer.port,"/dev/ttyS%i", portNum);
     // strcpy(&linkLayer.port, tempPort);
     linkLayer.baudRate = BAUDRATE;
-    linkLayer.sequenceNumber = 0x00;
+    linkLayer.sequenceNumber = identity == TRANSMITTER? 0 : 1;
     linkLayer.timeout = TIME_OUT_SCS;
     linkLayer.numTransmissions = TIME_OUT_CHANCES;
 
@@ -68,7 +70,7 @@ int llopen(int portNum, int indentity){
 
     logSuccess("New termios structure set\n");
 
-    switch (indentity)
+    switch (identity)
     {
     case TRANSMITTER:
         if(transmitter_SET(fd)<0){
@@ -284,10 +286,10 @@ int llwrite(int fd, char *dataField, int dataLength){
             stuffed_index+=1;
         }
     }
-    // printf("stuffed size: %i\n", stuffedDataLength);
-    // for(int i = 0; i < stuffedDataLength; i ++){
-    //     printf("data at position [%i] = %#x\n", i, stuffedDataField[i]);
-    // }
+    printf("stuffed size: %i\n", stuffedDataLength);
+    for(int i = 0; i < stuffedDataLength; i ++){
+        printf("data at position [%i] = %#x\n", i, stuffedDataField[i]);
+    }
     //------------------------------------------------------------------
 
 
@@ -332,10 +334,17 @@ int llwrite(int fd, char *dataField, int dataLength){
         printf("frameI [%i] = %#x\n", i, frameI[i] );
     }
     //-------------------------------------------------------------------
+    signal(SIGALRM,timeoutHandler);
+    
+    timeout=0;
+    timeoutCount=0;
+    stateMachine_st stateMachine;
+    stateMachine.currState=START;
 
-
+    char response[MAX_SIZE];
+    char msg[MAX_SIZE];
     alarm(TIME_OUT_SCS);          // set alarm, 3 seconds timout
-    res = write(fd,frameI, sizeof(frameI));   //Sends the frame I to the receiver
+    int res = write(fd,frameI, sizeof(frameI));   //Sends the frame I to the receiver
     if(res < 0){
         logError("Unable to write frame I to receiver!\n");
         exit(-1);
@@ -348,20 +357,20 @@ int llwrite(int fd, char *dataField, int dataLength){
           logError("TIMEOUT, UA not received!\n");
           exit(-1);
         }
-        res = write(fd,buf, 5); //SENDS DATA TO RECEIVER AGAIN
+        res = write(fd,frameI, 5); //SENDS DATA TO RECEIVER AGAIN
         timeout=0;
         stateMachine.currState=START;
         alarm(TIME_OUT_SCS);
       }
 
 
-      res = read(fd,buf,1);   /* returns after 1 char have been input */
-      buf[res]=0;               /* so we can printf... */
+      res = read(fd,response,1);   /* returns after 1 char have been input */
+      response[res]=0;               /* so we can printf... */
 
       if(res != -1){
-        sprintf(msg, "Received from Receiver:%#x:%d\n", buf[0], res);
+        sprintf(msg, "Received from Receiver:%#x:%d\n", response[0], res);
         logInfo(msg);
-        updateStateMachine(&stateMachine, buf, applicationLayer.status);
+        updateStateMachineInformation(&stateMachine, response, applicationLayer.status, linkLayer.sequenceNumber);
       }
       
     }

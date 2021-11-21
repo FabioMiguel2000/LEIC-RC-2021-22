@@ -33,5 +33,24 @@ int stuffing(char *data, int size_data, char* stuffed_data){
     // }
 
     return stuffed_size;
+}
 
+unsigned char* destuffing(unsigned char stuffed[],int stuffed_size, int* data_size){
+    unsigned char* data=(unsigned char *)malloc(stuffed_size);
+    data[0]=stuffed[0];
+    int data_index=1;
+    for(int i=1;i<stuffed_size;i++){
+      if (stuffed[i]!=ESCAPE){
+        data[data_index]=stuffed[i];
+        data_index++;  
+      }
+      else{
+        i++;
+        data[data_index]=stuffed[i]^0x20;
+        data_index++;        
+      }
+    }
+    data=realloc(data, stuffed_size-data_index);
+    *data_size=data_index;
+    return data;
 }
