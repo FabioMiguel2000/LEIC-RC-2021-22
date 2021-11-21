@@ -25,6 +25,9 @@
 
 /*      Campo de controlo C     */
 
+//Tramas de Informacao
+#define C_I(s) (0b00000000 | ((s)<< 6))     // s = numero de sequencia em tramas I
+
 //Tramas de comando 
 #define C_SET 0b00000011                    // (0x03)setup
 #define C_DISC 0b00001011                   // (0x0B)disconnect

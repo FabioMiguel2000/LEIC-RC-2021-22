@@ -1,10 +1,11 @@
 #include "data_stuffing.h"
 #include "macros.h"
-char* stuffing(char *data, int size_data){
+int stuffing(char *data, int size_data, char* stuffed_data){
 
 
-    char* stuffed_data=(char *)malloc(size_data*sizeof(char));
+    stuffed_data=(char *)malloc(size_data*sizeof(char));
     int stuffed_size=size_data;
+    // printf("stuffed size = %i\n", stuffed_size);
     stuffed_data[0]=data[0];
     int stuffed_index=0;
     for(int i=0;i<size_data;i++){
@@ -27,9 +28,10 @@ char* stuffing(char *data, int size_data){
             stuffed_index+=1;
         }
     }
+    // for(int i = 0; i < stuffed_size; i ++){
+    //     printf("data at position [%i] = %#x\n", i, stuffed_data[i]);
+    // }
 
-
-
-    return stuffed_data;
+    return stuffed_size;
 
 }

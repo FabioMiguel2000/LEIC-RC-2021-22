@@ -4,7 +4,7 @@
 #include "macros.h"
 #include "utils.h"
 
-char* stuffing(char *data, int size_data);
+int stuffing(char *data, int size_data, char *stuffed_data);
 
 
 #endif

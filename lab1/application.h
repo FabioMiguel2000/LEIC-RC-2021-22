@@ -43,8 +43,10 @@ int receiver_UA(int fd);
 
 int transmitter_SET(int fd);
 
-int prepareFrameI();
+int llwrite(int fd, char *dataField, int dataLength);
 
-int sendControlPacket();
+// int prepareFrameI();
+
+int sendControlPacket(int fd);
 
 #endif

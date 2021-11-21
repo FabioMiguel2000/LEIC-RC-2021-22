@@ -211,7 +211,7 @@ int transmitter_SET(int fd){
 //     close(fd);
 // }
 
-int sendControlPacket(){
+int sendControlPacket(int fd){
 
     printf("File size: %ld bytes\n", dataFile.filesize);
     char controlPacket[MAX_SIZE];
@@ -226,67 +226,189 @@ int sendControlPacket(){
     controlPacket[4+sizeof(dataFile.filesize)] = strlen(dataFile.filename);
     memcpy(&controlPacket[5+sizeof(dataFile.filesize)], &dataFile.filename, strlen(dataFile.filename));
 
-    printf("strlen of control packet: %li\n", strlen(controlPacket));
-    printf("Sum value of control packet: %li\n", strlen(dataFile.filename) + 5 + sizeof(dataFile.filesize));
+    // printf("strlen of control packet: %li\n", strlen(controlPacket));
+    // printf("Sum value of control packet: %li\n", strlen(dataFile.filename) + 5 + sizeof(dataFile.filesize));
 
-    // for(int i = 0; i < (strlen(dataFile.filename) + 5 + sizeof(dataFile.filesize)); i++){
-    //     if(i >= strlen(dataFile.filename) + 5){
-    //         printf("control packet [%i] = %c\n", i, controlPacket[i]);
-    //         continue;
-    //     }
-    //     printf("control packet [%i] = %#x\n", i, controlPacket[i]);
-    // }
+    for(int i = 0; i < (strlen(dataFile.filename) + 5 + sizeof(dataFile.filesize)); i++){
+        if(i >= strlen(dataFile.filename) + 5){
+            printf("control packet [%i] = %c\n", i, controlPacket[i]);
+            continue;
+        }
+        printf("control packet [%i] = %#x\n", i, controlPacket[i]);
+    }
+    llwrite(fd, controlPacket, strlen(dataFile.filename) + 5 + sizeof(dataFile.filesize));
 
     return 0;
 
 } 
 
-int llwrite(int fd, char *buffer, int length){
+
+
+
+int llwrite(int fd, char *dataField, int dataLength){
+
+
+    //-----Calculate BCC2, using the data field before stuffing-------
+    char BCC2 = dataField[0];
+    for(int i = 1; i < dataLength; i ++){
+        BCC2 ^= dataField[i];
+    }
+    printf("BCC2 before stuffing: %#x\n", BCC2);
+    //------------------------------------------------------------------
+
+
+    //----------------Data Field Stuffing--------------------------------   
+    char *stuffedDataField=(char *)malloc(dataLength);  //Data field after stuffing
+    int stuffedDataLength=dataLength;                   //Size of dataField after stuffing
+
+
+    stuffedDataField[0]=dataField[0];
+    int stuffed_index=0;
+    for(int i=0;i<dataLength;i++){
+        if(dataField[i]==FLAG){
+            stuffedDataLength++;
+            stuffedDataField= (char *) realloc(stuffedDataField, stuffedDataLength);
+            stuffedDataField[stuffed_index]=ESCAPE;
+            stuffedDataField[stuffed_index+1]=FLAG_ESC;
+            stuffed_index+=2;
+        }
+        else if(dataField[i]==ESCAPE){
+            stuffedDataLength++;
+            stuffedDataField=(char *) realloc(stuffedDataField, stuffedDataLength);
+            stuffedDataField[stuffed_index]=ESCAPE;
+            stuffedDataField[stuffed_index+1]=ESC_ESC;
+            stuffed_index+=2;
+        }
+        else{
+            stuffedDataField[stuffed_index]=dataField[i];
+            stuffed_index+=1;
+        }
+    }
+    // printf("stuffed size: %i\n", stuffedDataLength);
+    // for(int i = 0; i < stuffedDataLength; i ++){
+    //     printf("data at position [%i] = %#x\n", i, stuffedDataField[i]);
+    // }
+    //------------------------------------------------------------------
+
+
+
+
+    //---------------BCC2 stuffing----------------------
+    char *stuffedBCC2 = (char* )malloc(1);
+    int BCC2Length = 1;
+    if(BCC2 == FLAG){
+        stuffedBCC2 = (char *)realloc(stuffedBCC2, 2);
+        stuffedBCC2[0] = ESCAPE;
+        stuffedBCC2[1] = FLAG_ESC;
+        BCC2Length = 2;
+    }
+    else if(BCC2 == ESCAPE){
+        stuffedBCC2 = (char *)realloc(stuffedBCC2, 2);
+        stuffedBCC2[0] = ESCAPE;
+        stuffedBCC2[1] = ESC_ESC;
+        BCC2Length = 2;
+    }
+    else{
+        stuffedBCC2[0] = BCC2;
+    }
+    printf("BCC2 after stuffing: %#x\n", stuffedBCC2[0]);
+    //--------------------------------------------------
+
+
+    //----------------Building Frame I---------------------------------
+    int frameISize = 5 + BCC2Length + stuffedDataLength;    //Size of frame I
+    char *frameI = (char* )malloc(frameISize);              //Allocate memory with size of frame I calculated
+    printf("frameISize = %i\n", frameISize);
+    frameI[0] = FLAG;
+    frameI[1] = A_CERR;
+    frameI[2] = C_I(linkLayer.sequenceNumber);
+    frameI[3] = BCC(A_CERR, C_I(linkLayer.sequenceNumber));
+    memcpy(frameI+4, stuffedDataField, stuffedDataLength);
+    memcpy(frameI+4+stuffedDataLength, stuffedBCC2, BCC2Length);
+    frameI[4+stuffedDataLength+BCC2Length] = FLAG;
+
+    for(int i = 0; i < frameISize; i++){
+        frameI[i] = 
+        printf("frameI [%i] = %#x\n", i, frameI[i] );
+    }
+    //-------------------------------------------------------------------
+
+
+    alarm(TIME_OUT_SCS);          // set alarm, 3 seconds timout
+    res = write(fd,frameI, sizeof(frameI));   //Sends the frame I to the receiver
+    if(res < 0){
+        logError("Unable to write frame I to receiver!\n");
+        exit(-1);
+    }
+    
+    //  Waits for response (RR or REJ from receiver), and resends the frame if needed
+    while (stateMachine.currState!=STOP) {       /* loop for input */
+      if(timeout){
+        if(timeoutCount>=3){
+          logError("TIMEOUT, UA not received!\n");
+          exit(-1);
+        }
+        res = write(fd,buf, 5); //SENDS DATA TO RECEIVER AGAIN
+        timeout=0;
+        stateMachine.currState=START;
+        alarm(TIME_OUT_SCS);
+      }
+
+
+      res = read(fd,buf,1);   /* returns after 1 char have been input */
+      buf[res]=0;               /* so we can printf... */
+
+      if(res != -1){
+        sprintf(msg, "Received from Receiver:%#x:%d\n", buf[0], res);
+        logInfo(msg);
+        updateStateMachine(&stateMachine, buf, applicationLayer.status);
+      }
+      
+    }
     return 0;
 }
 
 
-void DataStuffing_TEST(){
-    char data[MAX_SIZE];
-    char expected[] = {0x7d, 0x5e, 0x01, 0x02, 0x7d, 0x5d, 0x7d, 0x5d, 0xff};
-    data[0] = FLAG;
-    data[1] = 0x01;
-    data[2] = 0x02;
-    data[3] = ESCAPE;
-    data[4] = ESCAPE;
-    data[5] = 0xFF;
-    char *stuffedData;
-    stuffedData = stuffing(data, sizeof(data));
-    for(int i = 0; i < sizeof(stuffedData); i ++){
-        printf("data at position [%i] = %#x\texpected: %#x\n", i, stuffedData[i], expected[i]);
-    }
-}
+// void DataStuffing_TEST(){
+//     char data[MAX_SIZE];
+//     char expected[] = {0x7d, 0x5e, 0x01, 0x02, 0x7d, 0x5d, 0x7d, 0x5d, 0xff};
+//     data[0] = FLAG;
+//     data[1] = 0x01;
+//     data[2] = 0x02;
+//     data[3] = ESCAPE;
+//     data[4] = ESCAPE;
+//     data[5] = 0xFF;
+//     char *stuffedData;
+//     stuffedData = stuffing(data, sizeof(data));
+//     for(int i = 0; i < sizeof(stuffedData); i ++){
+//         printf("data at position [%i] = %#x\texpected: %#x\n", i, stuffedData[i], expected[i]);
+//     }
+// }
 
 int main(int argc, char** argv){
-    // int portNum = parseArgs(argc, argv);
-    // if( portNum < 0){
-    //     logUsage();
-    //     exit(-1);
-    // }
-    // int fd = llopen(portNum, applicationLayer.status);
-    // if(fd < 0){
-    //     exit(-1);
-    // }
-    // switch (applicationLayer.status)
-    // {
-    // case TRANSMITTER:
-    //     if(sendControlPacket() < -1){
-    //         exit(-1);
-    //     }
-    //     break;
-    // case RECEIVER:
+    int portNum = parseArgs(argc, argv);
+    if( portNum < 0){
+        logUsage();
+        exit(-1);
+    }
+    int fd = llopen(portNum, applicationLayer.status);
+    if(fd < 0){
+        exit(-1);
+    }
+    switch (applicationLayer.status)
+    {
+    case TRANSMITTER:
+        if(sendControlPacket(fd) < -1){
+            exit(-1);
+        }
+        break;
+    case RECEIVER:
 
-    //     break;
-    // default:
-    //     break;
-    // }
+        break;
+    default:
+        break;
+    }
     // prepareFrameI();
-    DataStuffing_TEST();
 
     return 0;
     

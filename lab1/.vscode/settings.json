@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "data_stuffing.h": "c"
+        "data_stuffing.h": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c"
     }
 }
