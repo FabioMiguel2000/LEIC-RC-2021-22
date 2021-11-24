@@ -239,6 +239,37 @@ int sendControlPacket(int fd){
         printf("control packet [%i] = %#x\n", i, controlPacket[i]);
     }
     llwrite(fd, controlPacket, strlen(dataFile.filename) + 5 + sizeof(dataFile.filesize));
+    
+    int count = 0;
+
+    int dataFileFd = open(dataFile.filename, O_RDONLY);
+
+    if(dataFileFd < -1){
+        logError("Unable to open data file!\n");
+    }
+
+    char dataPacket[DATA_MAX_SIZE];
+    char data[DATA_MAX_SIZE-4];
+    int bytesRead = read(dataFileFd, &dataPacket, DATA_MAX_SIZE - 4);
+    while(bytesRead > 0){
+        printf("%i, bytes read, count num = %i\n", bytesRead, count);
+        dataPacket[0] = CTRL_PACK_C_DATA;
+        dataPacket[1] = count % 255;
+        // K = l2*256 + l1, where l1 = dataPacket[2] & l2 = dataPacket[3]
+        dataPacket[2] = bytesRead / 256;    
+        dataPacket[3] = bytesRead % 256;
+        memcpy(&dataPacket[4], data, bytesRead);
+        llwrite(fd, dataPacket, bytesRead + 4);
+        count ++;
+        bytesRead = read(dataFileFd, &dataPacket, DATA_MAX_SIZE - 4);
+    }
+
+    // Send End Control packet
+    controlPacket[0] = CTRL_PACK_C_DATA;
+
+    logSuccess("Finish Data transmission!\n");
+
+
 
     return 0;
 
@@ -372,8 +403,9 @@ int llwrite(int fd, char *dataField, int dataLength){
         logInfo(msg);
         updateStateMachineInformation(&stateMachine, response, applicationLayer.status, linkLayer.sequenceNumber);
       }
-      
+      //stateMachine.currState = STOP;
     }
+    linkLayer.sequenceNumber ++;
     return 0;
 }
 

@@ -2,6 +2,7 @@
 #define MAX_SIZE 255
 #define TRANSMITTER 0
 #define RECEIVER    1
+#define DATA_MAX_SIZE 1024
 
 #define MAX_TIME 3               //  Tempo de espera até reenvio de trama SET pelo Emissor
 #define BAUDRATE B38400
