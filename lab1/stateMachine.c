@@ -1,5 +1,7 @@
 #include "stateMachine.h"
 
+int frameISize;
+extern struct linkLayer linkLayer;
 
 void updateStateMachine(stateMachine_st *currStateMachine, char *buf, int identity){
     switch(currStateMachine->currState){
@@ -55,27 +57,48 @@ void updateStateMachine(stateMachine_st *currStateMachine, char *buf, int identi
 }
 
 
-void updateStateMachineInformation(stateMachine_st *currStateMachine, char *buf, int identity, unsigned int sequenceNum){
+int updateStateMachineInformation(stateMachine_st *currStateMachine, char *buf, int identity, unsigned int sequenceNum){
     switch(currStateMachine->currState){
         case START:
-            if(buf[0] == FLAG)
+            if(buf[0] == FLAG){
                 currStateMachine->currState = FLAG_RCV;
+                if(identity == RECEIVER){
+                    frameISize = 0;
+                    linkLayer.frame[frameISize] = buf[0];
+                    frameISize ++;
+                }
+
+            }
             break;
         case FLAG_RCV:
             if(buf[0] == A_CERR){
                 currStateMachine->currState = A_RCV;
                 currStateMachine->A_field = buf[0];
+                if(identity == RECEIVER){
+                    linkLayer.frame[frameISize] = buf[0];
+                    frameISize ++;
+                }
             }
-            else if(buf[0] == FLAG) 
+            else if(buf[0] == FLAG){
                 currStateMachine->currState = FLAG_RCV;
-            else 
+                if(identity == RECEIVER){
+                    frameISize = 1;
+                    linkLayer.frame[0] = buf[0];
+                }
+            }
+            else {
                 currStateMachine->currState = START;
+                if(identity == RECEIVER){
+                    frameISize = 0;
+                }
+            }
             break;
         case A_RCV:
             if(identity == TRANSMITTER){
                 if(buf[0] == C_RR((sequenceNum+1) % 2)){
                     currStateMachine->currState = C_RCV;
                     currStateMachine->C_field = buf[0];
+                    
                 }
                 else if(buf[0] == C_REJ((sequenceNum+1) % 2)){
                     logWarning("Frame was rejected by receiver!\n");
@@ -92,25 +115,50 @@ void updateStateMachineInformation(stateMachine_st *currStateMachine, char *buf,
                 if(buf[0] == C_I((sequenceNum+1) % 2)){
                     currStateMachine->currState = C_RCV;
                     currStateMachine->C_field = buf[0];
+                    linkLayer.frame[frameISize] = buf[0];
+                    frameISize ++;
+                }
+                else if(buf[0] != C_I((sequenceNum+1) % 2)){
+                    currStateMachine->currState = START;
+                    frameISize = 0;
+                    logWarning("Incorrect Control Field received from transmitter!\n ");
+                    return INCORRECT_C_FIELD;
                 }
                 else if(buf[0] == FLAG){
                     currStateMachine->currState = FLAG_RCV;
+                    linkLayer.frame[0] = buf[0];
+                    frameISize = 1;
                 }
                 else if(buf[0] != FLAG){
                     currStateMachine->currState = START;
+                    frameISize = 0;
                 }
             }
             break;
         case C_RCV:
             if(buf[0] == (currStateMachine->A_field ^ currStateMachine->C_field)){ //Check BCC
                 currStateMachine->currState = BCC1_OK;
+                if(identity == RECEIVER){
+                    linkLayer.frame[frameISize] = buf[0];
+                    frameISize ++;
+                }
+            }
+            else if(buf[0] != (currStateMachine->A_field ^ currStateMachine->C_field)){
+                if(identity == RECEIVER){
+                    currStateMachine->currState = START;
+                    frameISize = 0;
+                    logWarning("Incorrect BCC1 received from transmitter!\n ");
+                    return INCORRECT_BCC1_FIELD;
+                }
             }
             else if(buf[0] == FLAG){
                 currStateMachine->currState = FLAG_RCV;
-
+                linkLayer.frame[0] = buf[0];
+                frameISize = 1;
             }
             else if(buf[0] != FLAG){
                 currStateMachine->currState = START;
+                frameISize = 0;
             }
             break;
         case BCC1_OK:
@@ -124,10 +172,14 @@ void updateStateMachineInformation(stateMachine_st *currStateMachine, char *buf,
             }
             else{   //identity == RECEIVER
                 currStateMachine->currState = INFO;
+                linkLayer.frame[frameISize] = buf[0];
+                frameISize ++;
             }
             break;
-        case INFO:
-            if(identity == RECEIVER && buf[0] == FLAG){
+        case INFO:  //Can only be reached by receiver
+            linkLayer.frame[frameISize] = buf[0];
+            frameISize ++;
+            if(buf[0] == FLAG){
                 currStateMachine->currState = STOP;
             }
         case STOP:
@@ -136,6 +188,7 @@ void updateStateMachineInformation(stateMachine_st *currStateMachine, char *buf,
             break;
 
     }
+    return 0;
 }
 
 // void updateStateMachineInformation(stateMachine_st *currStateMachine, char  buf, int *ch){

@@ -3,6 +3,7 @@
 #define TRANSMITTER 0
 #define RECEIVER    1
 #define DATA_MAX_SIZE 1024
+#define WORST_CASE_FRAME_I (DATA_MAX_SIZE*2 + 2 + 5) // Considering every data byte stuffed and BCC2 stuffed + 5 (Flag, field A, field C, BCC1, FLAG)
 
 #define MAX_TIME 3               //  Tempo de espera até reenvio de trama SET pelo Emissor
 #define BAUDRATE B38400
@@ -45,6 +46,13 @@
 /*              Identity                    */
 #define SENDER 0
 #define RECEIVER 1
+
+
+/*      Stuffed     */
 #define ESCAPE 0x7d 
 #define FLAG_ESC 0x5E
 #define ESC_ESC 0x5D
+
+/*      Errors          */
+#define INCORRECT_C_FIELD -1
+#define INCORRECT_BCC1_FIELD -2

@@ -9,6 +9,10 @@
 #include "data_stuffing.h"
 #include "stateMachine.h"
 
+struct applicationLayer applicationLayer;
+struct linkLayer linkLayer;
+struct dataFile dataFile;
+
 struct applicationLayer {
     int fileDescriptor;             /*Descritor correspondente à porta série*/
     int status;                     /*TRANSMITTER | RECEIVER*/
@@ -17,6 +21,7 @@ struct applicationLayer {
 struct dataFile {
     char filename[MAX_SIZE];
     off_t filesize;
+    int fd;
 };
 
 
@@ -26,7 +31,7 @@ struct linkLayer {
     unsigned int sequenceNumber;    /*Número de sequência da trama: 0, 1*/
     unsigned int timeout;           /*Valor do temporizador: 1 s*/
     unsigned int numTransmissions;  /*Número de tentativas em caso de falha*/
-    char frame[MAX_TIME];           /*Trama*/
+    char frame[WORST_CASE_FRAME_I];           /*Trama*/
 };
 
 int parseArgs(int argc, char** arg);
@@ -45,8 +50,10 @@ int transmitter_SET(int fd);
 
 int llwrite(int fd, char *dataField, int dataLength);
 
+int llread(int fd, char *buffer);
+
 // int prepareFrameI();
 
-int sendControlPacket(int fd);
+int sendPacket(int fd);
 
 #endif

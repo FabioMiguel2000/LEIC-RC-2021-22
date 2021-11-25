@@ -3,6 +3,7 @@
 
 #include "macros.h"
 #include "log.h"
+#include "application.h"
 
 
 enum stateMachine { START, FLAG_RCV, A_RCV, C_RCV, BCC1_OK, INFO, STOP};
@@ -16,5 +17,5 @@ typedef struct {
 }stateMachine_st;
 
 void updateStateMachine(stateMachine_st *currStateMachine, char *buf, int identity);
-void updateStateMachineInformation(stateMachine_st *currStateMachine, char *buf, int identity, unsigned int sequenceNum);
+int updateStateMachineInformation(stateMachine_st *currStateMachine, char *buf, int identity, unsigned int sequenceNum);
 #endif
