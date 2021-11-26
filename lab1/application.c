@@ -268,8 +268,12 @@ int sendPacket(int fd)
 
     char dataPacket[DATA_MAX_SIZE];
     char data[DATA_MAX_SIZE - 4];
-    int bytesRead = read(dataFileFd, &dataPacket, DATA_MAX_SIZE - 4);
+    int bytesRead = read(dataFileFd, &data, DATA_MAX_SIZE - 4);
+
+    
+
     while (bytesRead > 0)
+    // while (count < 8)
     {
         // printf("%i, bytes read, count num = %i\n", bytesRead, count);
         dataPacket[0] = CTRL_PACK_C_DATA;
@@ -277,11 +281,17 @@ int sendPacket(int fd)
         // K = l2*256 + l1, where l1 = dataPacket[2] & l2 = dataPacket[3]
         dataPacket[2] = bytesRead / 256;
         dataPacket[3] = bytesRead % 256;
+
         memcpy(&dataPacket[4], data, bytesRead);
+        printf("data sent length=%i=>\n", bytesRead);
+        for(int i= 0; i < bytesRead; i++){
+            printf("%#x", dataPacket[4+i]);
+        }
+        printf("\n");
         llwrite(fd, dataPacket, bytesRead + 4);
         printf("sequence number= %i\n", count);
         count++;
-        bytesRead = read(dataFileFd, &dataPacket, DATA_MAX_SIZE - 4);
+        bytesRead = read(dataFileFd, &data, DATA_MAX_SIZE - 4);
     }
 
     // Send End Control packet
@@ -313,16 +323,24 @@ int receivePacket(int fd)
             int dataSize;
             if ((sequenceNum % 255) != dataField[1])
             {
-                break;
+                continue;
             }
             dataSize = 256 * dataField[2] + dataField[3];
             if (dataFile.fd > 0)
             { //If already openned
+
+                printf("\nsaving length=%i=>\n", dataSize);
+                for(int i =0; i < dataSize; i++){
+                    printf("%#x", dataField[4+i]);
+                }
+                printf("\n");
+
                 write(dataFile.fd, &dataField[4], dataSize);
                 totalSizeLoaded += dataSize;
                 linkLayer.sequenceNumber = (linkLayer.sequenceNumber + 1) % 2;
                 printf("frame size received = %i\n", frameISize);
                 printf("sequence num = %i\n", sequenceNum);
+                sequenceNum++;
 
             }
         }
@@ -337,8 +355,12 @@ int receivePacket(int fd)
                     V_fieldSize = dataField[bytesProccessed + 1];
                     for (int i = 0; i < V_fieldSize; i++)
                     {
-                        dataFile.filesize += dataField[bytesProccessed + 2 + i] >> 8 * (V_fieldSize - 1);
+                        dataFile.filesize += dataField[bytesProccessed + 2 + i] << 8 * i;
+                        // printf("size = %#x\n", dataField[bytesProccessed + 2 + i]);
                     }
+                    printf("\ndatafile size is %li\n", dataFile.filesize);
+
+                    bytesProccessed += V_fieldSize + 1;
                 }
                 else if (dataField[bytesProccessed] == CTRL_PACK_T_NAME)
                 {
@@ -346,13 +368,16 @@ int receivePacket(int fd)
                     for (int i = 0; i < V_fieldSize; i++)
                     {
                         dataFile.filename[i] = dataField[bytesProccessed + 2 + i];
+
                     }
+                    printf("\ndatafile name is %s\n", dataFile.filename);
+                    bytesProccessed += V_fieldSize + 1;
                 }
-                bytesProccessed++;
+                bytesProccessed ++;
             }
             char newFilename[MAX_SIZE+5];
             sprintf(newFilename, "copy_%s", dataFile.filename);
-            dataFile.fd = open(newFilename, O_RDWR | O_CREAT);
+            dataFile.fd = open(newFilename, O_RDWR | O_CREAT, 0777);        //0777 for permission
             if (dataFile.fd < 0)
             {
                 logError("Unable to open file to load data!\n");
@@ -361,8 +386,13 @@ int receivePacket(int fd)
             linkLayer.sequenceNumber = (linkLayer.sequenceNumber + 1) % 2;
         }
         else if (dataField[0] == CTRL_PACK_C_END)
-        {
+        {   
+            stop = 1;
             char msg[MAX_SIZE];
+            if(close(dataFile.fd)<0){
+                printf("Error closing the copy file!\n");
+            }
+            
             if (totalSizeLoaded == dataFile.filesize)
             {
                 sprintf(msg, "All %li bytes successfully received!", totalSizeLoaded);
@@ -373,7 +403,6 @@ int receivePacket(int fd)
                 sprintf(msg, "Only %li bytes received, expected %li bytes!", totalSizeLoaded, dataFile.filesize);
                 logWarning(msg);
             }
-            stop = 1;
         }
     }
     return 0;
@@ -400,6 +429,7 @@ int llread(int fd, char *buffer)
 
         if (res != -1)
         {
+            // printf(":%#x:", buf[0]);
             // sprintf(msg, "Received from Transmitter:%#x:%d\n", buf[0], res);
             // logInfo(msg);
             machineState = updateStateMachineInformation(&stateMachine, buf, applicationLayer.status, linkLayer.sequenceNumber);
@@ -470,6 +500,12 @@ int llread(int fd, char *buffer)
             return -1;
         }
     }
+
+    // printf("\nInside the llread=>\n");
+    // for(int i = 0; i < destuffedDataSize; i++){
+    //     printf("%#x", buffer[i]);
+    // }
+    // printf("\n");
     response[2] = C_RR(linkLayer.sequenceNumber);
     response[3] = BCC(A_CERR, C_RR(linkLayer.sequenceNumber));
     write(fd, response, 5);
@@ -573,10 +609,13 @@ int llwrite(int fd, char *dataField, int dataLength)
     char response[MAX_SIZE];
     char msg[MAX_SIZE];
     alarm(TIME_OUT_SCS);                     // set alarm, 3 seconds timout
-    //     for (int i = 0; i < frameISize; i++)
+    // printf("frameI =\n");
+    // for (int i = 0; i < frameISize; i++)
     // {
-    //     printf("frameI [%i] = %#x\n", i, frameI[i]);
+    //     // printf("frameI [%i] = %#x\n", i, frameI[i]);
+    //     printf("%#x",frameI[i]);
     // }
+    // printf("\n\n");
     int res = write(fd, frameI, frameISize); //Sends the frame I to the receiver
     printf("frameISize = %i\n", frameISize);
 

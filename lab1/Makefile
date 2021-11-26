@@ -13,6 +13,6 @@ $(TARGET): $(OBJS)
 .PHONY: clean
 
 clean:
-	rm $(TARGET) $(OBJS) copy_test.png
+	rm $(TARGET) $(OBJS) -rf copy_test.png copy_test.txt copy_pinguim.gif
 
 # sudo socat -d  -d  PTY,link=/dev/ttyS10,mode=777   PTY,link=/dev/ttyS11,mode=777
