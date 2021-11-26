@@ -2,8 +2,9 @@
 #define STATEMACHINE_H
 
 #include "macros.h"
-#include "log.h"
+#include "utils.h"
 #include "application.h"
+#include "protocol.h"
 
 
 enum stateMachine { START, FLAG_RCV, A_RCV, C_RCV, BCC1_OK, INFO, STOP};
@@ -16,6 +17,6 @@ typedef struct {
     char C_Expected;	//valor esperado no campo C (Command) em função do comando que está a ser recebido
 }stateMachine_st;
 
-void updateStateMachine(stateMachine_st *currStateMachine, char *buf, int identity);
-int updateStateMachineInformation(stateMachine_st *currStateMachine, char *buf, int identity, unsigned int sequenceNum);
+void updateStateMachine_CONNECTION(stateMachine_st *currStateMachine, char *buf);
+int updateStateMachine_COMMUNICATION(stateMachine_st *currStateMachine, char *buf);
 #endif

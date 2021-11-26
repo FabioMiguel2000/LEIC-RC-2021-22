@@ -1,4 +1,4 @@
-#include "log.h"
+#include "utils.h"
 
 void logError(char *msg){
     char buf[MAX_SIZE];
@@ -29,4 +29,14 @@ void logUsage(){
     sprintf(buf, "Usage:\t./application <filename|TRANSMITTER ONLY> <serialPort>\nFor receiver: use port /dev/ttyS10\nFor transmitter: use port /dev/ttyS11\n");
     write(STDOUT_FILENO, buf, strlen(buf));
     
+}
+
+void timeoutHandler()                   // atende alarme
+{
+	timeout=1;
+	timeoutCount++;
+	char buf[MAX_SIZE];
+	sprintf(buf, "Time-out achieved, count = %i\n", timeoutCount);
+	logWarning(buf);
+
 }
