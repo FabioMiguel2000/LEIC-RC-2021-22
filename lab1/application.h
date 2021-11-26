@@ -17,7 +17,7 @@ struct applicationLayer {
 };
 
 struct dataFile {
-    char filename[MAX_SIZE];
+    char filename[100];
     off_t filesize;
     int fd;
 };

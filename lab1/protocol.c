@@ -7,7 +7,7 @@ int receiver_UA(int fd)
 {
     int res;
     char buf[MAX_SIZE];
-    char msg[MAX_SIZE];
+    // char msg[MAX_SIZE];
     stateMachine_st stateMachine;
     stateMachine.currState = START;
 
@@ -19,8 +19,8 @@ int receiver_UA(int fd)
         buf[res] = 0;           /* so we can printf... */
         if (res != -1)
         {
-            sprintf(msg, "Received from Transmitter:%#x:%d\n", buf[0], res);
-            logInfo(msg);
+            // sprintf(msg, "Received from Transmitter:%#x:%d\n", buf[0], res);
+            // logInfo(msg);
             updateStateMachine_CONNECTION(&stateMachine, buf);
         }
     }
@@ -42,7 +42,7 @@ int transmitter_SET(int fd)
 {
     int res;
     char buf[MAX_SIZE];
-    char msg[MAX_SIZE];
+    // char msg[MAX_SIZE];
 
     buf[0] = FLAG;
     buf[1] = A_CERR;
@@ -65,7 +65,7 @@ int transmitter_SET(int fd)
         exit(-1);
     }
 
-    logInfo("SET frame was sent to receiver, trying to establish connection with receiver\n");
+    logInfo("SET sent! Transmitter trying to establish connection with receiver...\n");
 
     while (stateMachine.currState != STOP)
     { /* loop for input */
@@ -87,12 +87,12 @@ int transmitter_SET(int fd)
 
         if (res != -1)
         {
-            sprintf(msg, "Received from Receiver:%#x:%d\n", buf[0], res);
-            logInfo(msg);
+            // sprintf(msg, "Received from Receiver:%#x:%d\n", buf[0], res);
+            // logInfo(msg);
             updateStateMachine_CONNECTION(&stateMachine, buf);
         }
     }
-    logSuccess("Connection with receiver was sucessfully established!\n");
+    logSuccess("UA received! Connection with receiver was sucessfully established!\n");
 
     return 0;
 }
@@ -276,7 +276,7 @@ int llwrite(int fd, char *dataField, int dataLength)
     // }
     // printf("\n\n");
     int res = write(fd, frameI, frameISize); //Sends the frame I to the receiver
-    printf("frameISize = %i\n", frameISize);
+    // printf("frameISize = %i\n", frameISize);
 
     if (res < 0)
     {

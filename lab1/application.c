@@ -23,8 +23,7 @@ int parseArgs(int argc, char **argv)
 
 int sendPacket(int fd)
 {
-
-    printf("File size: %lld bytes\n", dataFile.filesize);
+    char msg[MAX_SIZE];
     char controlPacket[MAX_SIZE];
 
     //  Build control packet
@@ -49,7 +48,12 @@ int sendPacket(int fd)
     //     }
     //     printf("control packet [%i] = %#x\n", i, controlPacket[i]);
     // }
-    llwrite(fd, controlPacket, strlen(dataFile.filename) + 5 + sizeof(dataFile.filesize));
+    if(llwrite(fd, controlPacket, strlen(dataFile.filename) + 5 + sizeof(dataFile.filesize))<0){
+        logError("Something went wrong while sending START control packet on llwrite()!\n");
+        exit(-1);
+    }
+    logInfo("START control packet was transmitted!\n");
+
 
     int count = 0;
 
@@ -62,13 +66,18 @@ int sendPacket(int fd)
 
     char dataPacket[DATA_MAX_SIZE];
     char data[DATA_MAX_SIZE - 4];
-    int bytesRead = read(dataFileFd, &data, DATA_MAX_SIZE - 4);
-
     
 
+    sprintf(msg, "File Information:\n\tFile name: %s\n\tFile total size: %ld Bytes\n", dataFile.filename, dataFile.filesize);
+    logInfo(msg);
+    logInfo("Starting to send file data...\n");
+
+    off_t sizeLeft = dataFile.filesize;
+    int bytesRead = read(dataFileFd, &data, DATA_MAX_SIZE - 4);
+
     while (bytesRead > 0)
-    // while (count < 8)
     {
+
         // printf("%i, bytes read, count num = %i\n", bytesRead, count);
         dataPacket[0] = CTRL_PACK_C_DATA;
         dataPacket[1] = count % 255;
@@ -77,22 +86,39 @@ int sendPacket(int fd)
         dataPacket[3] = bytesRead % 256;
 
         memcpy(&dataPacket[4], data, bytesRead);
-        printf("data sent length=%i=>\n", bytesRead);
-        for(int i= 0; i < bytesRead; i++){
-            printf("%#x", dataPacket[4+i]);
+        // printf("data sent length=%i=>\n", bytesRead);
+        // for(int i= 0; i < bytesRead; i++){
+        //     printf("%#x", dataPacket[4+i]);
+        // }
+        // printf("\n");
+        if(llwrite(fd, dataPacket, bytesRead + 4) < 0){
+            logError("Something went wrong while sending file information on llwrite()!\n");
+            exit(-1);
         }
-        printf("\n");
-        llwrite(fd, dataPacket, bytesRead + 4);
-        printf("sequence number= %i\n", count);
+        sizeLeft -= bytesRead;
+        sprintf(msg, "Transmission Number = %i\n\t\t> %i Bytes was transmitted on this transmission\n\t\t> %li Bytes left!\n", count, bytesRead, sizeLeft);
+        logInfo(msg);
         count++;
         bytesRead = read(dataFileFd, &data, DATA_MAX_SIZE - 4);
+    }
+    if(sizeLeft == 0){
+        sprintf(msg, "All %li Bytes successfully transmitted!\n", dataFile.filesize);
+        logSuccess(msg);
+    }
+    else{
+        sprintf(msg, "Only %li bytes transmitted, expected %li bytes!", dataFile.filesize - sizeLeft, dataFile.filesize);
+        logWarning(msg);
     }
 
     // Send End Control packet
     controlPacket[0] = CTRL_PACK_C_END;
-    llwrite(fd, controlPacket, strlen(dataFile.filename) + 5 + sizeof(dataFile.filesize));
+    if(llwrite(fd, controlPacket, strlen(dataFile.filename) + 5 + sizeof(dataFile.filesize))<0){
+        logError("Something went wrong while sending END control packet on llwrite()!\n");
+        exit(-1);
+    }
 
-    logSuccess("Finish Data transmission!\n");
+    logInfo("END control packet was transmitted!\n");
+    logSuccess("Finished Data transmission!\n");
 
     return 0;
 }
@@ -126,14 +152,16 @@ int receivePacket(int fd)
             if (dataFile.fd > 0)
             { //If already openned
 
-                printf("\nsaving length=%i=>\n", dataSize);
-                for(int i =0; i < dataSize; i++){
-                    printf("%#x", dataField[4+i]);
-                }
-                printf("\n");
+                // printf("\nsaving length=%i=>\n", dataSize);
+                // for(int i =0; i < dataSize; i++){
+                //     printf("%#x", dataField[4+i]);
+                // }
+                // printf("\n");
 
                 write(dataFile.fd, &dataField[4], dataSize);
                 totalSizeLoaded += dataSize;
+                sprintf(msg, "Transmission Number = %i\n\t\t> %i Bytes was received on this transmission\n\t\t> %li Bytes total received!\n", sequenceNum, bytesRead, totalSizeLoaded);
+                logInfo(msg);
                 // linkLayer.sequenceNumber = (linkLayer.sequenceNumber + 1) % 2;
                 // printf("frame size received = %i\n", frameISize);
                 // printf("sequence num = %i\n", sequenceNum);
@@ -143,6 +171,7 @@ int receivePacket(int fd)
         }
         else if (dataField[0] == CTRL_PACK_C_START)
         {
+            logInfo("START control packet was received!\n");
             int V_fieldSize;
             int bytesProccessed = 1;
             while (bytesProccessed < bytesRead)
@@ -155,7 +184,7 @@ int receivePacket(int fd)
                         dataFile.filesize += dataField[bytesProccessed + 2 + i] << 8 * i;
                         // printf("size = %#x\n", dataField[bytesProccessed + 2 + i]);
                     }
-                    printf("\ndatafile size is %lli\n", dataFile.filesize);
+                    printf("\ndatafile size is %li\n", dataFile.filesize);
 
                     bytesProccessed += V_fieldSize + 1;
                 }
@@ -180,10 +209,13 @@ int receivePacket(int fd)
                 logError("Unable to open file to load data!\n");
                 return -1;
             }
+            sprintf(msg, "File Information:\n\tFile name: %s\n\tFile total size: %ld Bytes\n", dataFile.filename, dataFile.filesize);
+            logInfo(msg);
             // linkLayer.sequenceNumber = (linkLayer.sequenceNumber + 1) % 2;
         }
         else if (dataField[0] == CTRL_PACK_C_END)
         {   
+            logInfo("END control packet was received!\n");
             stop = 1;
             if(close(dataFile.fd)<0){
                 printf("Error closing the copy file!\n");
@@ -191,12 +223,12 @@ int receivePacket(int fd)
             
             if (totalSizeLoaded == dataFile.filesize)
             {
-                sprintf(msg, "All %lli bytes successfully received!", totalSizeLoaded);
+                sprintf(msg, "All %li bytes successfully received!", totalSizeLoaded);
                 logSuccess(msg);
             }
             else
             {
-                sprintf(msg, "Only %lli bytes received, expected %lli bytes!", totalSizeLoaded, dataFile.filesize);
+                sprintf(msg, "Only %li bytes received, expected %li bytes!", totalSizeLoaded, dataFile.filesize);
                 logWarning(msg);
             }
         }
