@@ -6,6 +6,7 @@
 #define WORST_CASE_FRAME_I (DATA_MAX_SIZE*2 + 2 + 5) // Considering every data byte stuffed and BCC2 stuffed + 5 (Flag, field A, field C, BCC1, FLAG)
 
 #define MAX_TIME 3               //  Tempo de espera até reenvio de trama SET pelo Emissor
+#define MAX_TRIES 3
 #define BAUDRATE B38400
 #define TIME_OUT_SCS 3               //tempo maximo de espera para reenvio de trama SET por emissor
 #define TIME_OUT_CHANCES 3        //Numero de tentativas de timeout 
