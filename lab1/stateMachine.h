@@ -19,4 +19,5 @@ typedef struct {
 
 void updateStateMachine_CONNECTION(stateMachine_st *currStateMachine, char *buf);
 int updateStateMachine_COMMUNICATION(stateMachine_st *currStateMachine, char *buf);
+void updateStateMachinellclose(stateMachine_st *currStateMachine, unsigned char *buf, int identity);
 #endif

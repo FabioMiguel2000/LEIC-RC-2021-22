@@ -191,3 +191,60 @@ int updateStateMachine_COMMUNICATION(stateMachine_st *currStateMachine, char *bu
     }
     return 0;
 }
+
+void updateStateMachinellclose(stateMachine_st *currStateMachine, unsigned char *buf, int identity){
+  
+    switch(currStateMachine->currState){
+        case START: 
+           
+            if(*buf== FLAG){
+                currStateMachine->currState = FLAG_RCV;
+            }
+            break;
+        case FLAG_RCV:
+            if(*buf== currStateMachine->A_Expected){
+                currStateMachine->currState = A_RCV;
+                currStateMachine->A_field = *buf;
+            }
+            else if(*buf != FLAG){
+                
+                currStateMachine->currState = START;
+            }
+            break;
+        case A_RCV:
+            if(*buf== currStateMachine->C_Expected){
+                currStateMachine->currState = C_RCV;
+                currStateMachine->C_field = *buf;
+            }
+            else if(*buf == FLAG){
+                currStateMachine->currState = FLAG_RCV;
+            }
+            else if(*buf!= FLAG){
+                currStateMachine->currState = START;
+            }
+            break;
+        case C_RCV:
+            if(*buf== (currStateMachine->A_field ^ currStateMachine->C_field)){ //Check BCC
+                currStateMachine->currState = BCC1_OK;
+            }
+            else if(*buf== FLAG){
+                currStateMachine->currState = FLAG_RCV;
+
+            }
+            else if(*buf!= FLAG){
+                currStateMachine->currState = START;
+            }
+            break;
+        case BCC1_OK:
+            if(*buf== FLAG){
+                currStateMachine->currState = STOP;
+            }
+            else if(*buf!= FLAG){
+                currStateMachine->currState = START;
+            }
+            break;
+        default:
+            break;
+    }
+}
+

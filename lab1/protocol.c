@@ -170,6 +170,125 @@ int llopen(int portNum, int identity)
     return fd;
 }
 
+int llclose(int fd,int identity){
+    signal(SIGALRM,timeoutHandler);
+    unsigned char *frame;
+    unsigned char buf;
+    //unsigned char buf[MAX_SIZE];
+    timeout=0;
+    struct termios oldtio;
+    stateMachine_st stateMachine;
+    int numch;
+    int numtries=0;
+    switch (identity)
+    {
+    case TRANSMITTER: 
+        //envia trama de comando DISC
+        printf("Sending DISC frame...\n");
+        frame=build_ctrl_frame(A_CERR,C_DISC);
+        numch=write(fd,frame,5);
+        if(numch==-1){
+            perror("erro:");      
+            return -1;      
+        }
+        else{
+            printf("DISC frame sent Sucessfully.\n");
+        }
+        //state machine -aguarda disc do receiver
+        stateMachine.currState=START;
+        stateMachine.A_Expected=A_CRRE;//aqui
+        stateMachine.C_Expected=C_DISC;
+        //AGUARDA RESPOSTA TRAMA DE COMANDO DISC COMO RESPOSTA DO RECEIVER
+        alarm(MAX_TIME);          // 3 seconds timout
+        while (stateMachine.currState!=STOP) {       /* loop for input */
+            if(timeout){
+                numtries++;
+                if(numtries>=MAX_TRIES){
+                    printf("TimeOut!\n");
+                    return -1;
+                }
+                printf("Resending DISC frame\n");
+                numch=write(fd,frame, 5); //SENDS DATA TO RECEIVER AGAIN
+                if(numch==-1){
+                    perror("erro:");      
+                    return -1;      
+                }
+                timeout=0;
+                stateMachine.currState=START;
+                alarm(MAX_TIME);
+            }
+            read(fd,&buf,1);  
+            updateStateMachinellclose(&stateMachine,&buf,identity);   
+        }
+        //ENVIA TRAMA DE COMANDO UA
+        frame=build_ctrl_frame(A_CERR,C_UA);
+        write(fd,frame,5);
+        if(numch==-1){
+            perror("erro:");      
+            return -1;      
+        }
+        break;
+    
+    case RECEIVER:
+        //STATE MACHINE AGUARDA DISC DO TRANSMITTER
+        stateMachine.currState=START;
+        stateMachine.A_Expected=A_CERR;
+        stateMachine.C_Expected=C_DISC;
+
+        alarm(MAX_TIME);          // 3 seconds timout
+        //AGUARDA TRAMA (DISC) COMO COMANDO ENVIADO PELO EMISSOR
+        while (stateMachine.currState!=STOP) {   
+            if(timeout){
+                numtries++;
+                if(numtries>=MAX_TRIES+1){
+                    printf("TimeOut!\n");
+                    return -1;
+                }
+                    
+                timeout=0;
+                stateMachine.currState=START;
+                alarm(MAX_TIME);
+            }
+            read(fd,&buf,1);
+     
+            updateStateMachinellclose(&stateMachine,&buf,identity);  
+        }
+        frame=build_ctrl_frame(A_CRRE,C_DISC);
+        write(fd,frame,5);//Envia Comando (DISC) como resposta ao comando Disc enviado pelo emissor
+        if(numch==-1){
+            perror("erro:");      
+            return -1;      
+        }
+        //STATE MACHINE AGUARDA UA DO TRANSMITTER
+        alarm(MAX_TIME);          // 3 seconds timout
+        stateMachine.currState=START;
+        stateMachine.A_Expected=A_CERR;
+        stateMachine.C_Expected=C_UA;
+        while (stateMachine.currState!=STOP) {       /* loop for input */
+            if(timeout){
+                timeout=0;
+                stateMachine.currState=START;
+                alarm(MAX_TIME);
+            }
+            read(fd,&buf,1);   /* returns after 1 char have been input */
+            updateStateMachinellclose(&stateMachine,&buf,identity);  
+        }
+        break;
+    default:
+        break;
+    }
+       
+   
+    if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
+      perror("tcsetattr");
+      return -1;
+    }
+    close(fd);
+    printf("Successfully closed link.\n");
+    return 0;
+
+}
+
 
 int llwrite(int fd, char *dataField, int dataLength)
 {
