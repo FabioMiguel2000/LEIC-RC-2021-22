@@ -24,7 +24,7 @@ int parseArgs(int argc, char **argv)
 int sendPacket(int fd)
 {
     char msg[MAX_SIZE];
-    char controlPacket[MAX_SIZE];
+    unsigned char controlPacket[MAX_SIZE];
 
     //  Build control packet
     controlPacket[0] = CTRL_PACK_C_START;
@@ -54,7 +54,6 @@ int sendPacket(int fd)
     }
     logInfo("START control packet was transmitted!\n");
 
-
     int count = 0;
 
     int dataFileFd = open(dataFile.filename, O_RDONLY);
@@ -64,8 +63,8 @@ int sendPacket(int fd)
         logError("Unable to open data file!\n");
     }
 
-    char dataPacket[DATA_MAX_SIZE];
-    char data[DATA_MAX_SIZE - 4];
+    unsigned char dataPacket[DATA_MAX_SIZE];
+    unsigned char data[DATA_MAX_SIZE - 4];
     
 
     sprintf(msg, "File Information:\n\tFile name: %s\n\tFile total size: %ld Bytes\n", dataFile.filename, dataFile.filesize);
@@ -125,7 +124,7 @@ int sendPacket(int fd)
 
 int receivePacket(int fd)
 {
-    char dataField[WORST_CASE_FRAME_I];
+    unsigned char dataField[WORST_CASE_FRAME_I];
     char msg[MAX_SIZE];
     int bytesRead;
     int sequenceNum = 0;

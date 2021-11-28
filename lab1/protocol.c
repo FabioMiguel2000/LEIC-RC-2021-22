@@ -6,7 +6,7 @@ extern int frameISize;
 int receiver_UA(int fd)
 {
     int res;
-    char buf[MAX_SIZE];
+    unsigned char buf[MAX_SIZE];
     // char msg[MAX_SIZE];
     stateMachine_st stateMachine;
     stateMachine.currState = START;
@@ -41,7 +41,7 @@ int receiver_UA(int fd)
 int transmitter_SET(int fd)
 {
     int res;
-    char buf[MAX_SIZE];
+    unsigned char buf[MAX_SIZE];
     // char msg[MAX_SIZE];
 
     buf[0] = FLAG;
@@ -290,11 +290,11 @@ int llclose(int fd,int identity){
 }
 
 
-int llwrite(int fd, char *dataField, int dataLength)
+int llwrite(int fd, unsigned char *dataField, int dataLength)
 {
 
     //-----Calculate BCC2, using the data field before stuffing-------
-    char BCC2 = dataField[0];
+    unsigned char BCC2 = dataField[0];
     for (int i = 1; i < dataLength; i++)
     {
         BCC2 ^= dataField[i];
@@ -303,7 +303,7 @@ int llwrite(int fd, char *dataField, int dataLength)
     //------------------------------------------------------------------
 
     //----------------Data Field Stuffing--------------------------------
-    char *stuffedDataField = (char *)malloc(dataLength); //Data field after stuffing
+    unsigned char *stuffedDataField = (unsigned char *)malloc(dataLength); //Data field after stuffing
     int stuffedDataLength = dataLength;                  //Size of dataField after stuffing
 
     stuffedDataField[0] = dataField[0];
@@ -313,7 +313,7 @@ int llwrite(int fd, char *dataField, int dataLength)
         if (dataField[i] == FLAG)
         {
             stuffedDataLength++;
-            stuffedDataField = (char *)realloc(stuffedDataField, stuffedDataLength);
+            stuffedDataField = (unsigned char *)realloc(stuffedDataField, stuffedDataLength);
             stuffedDataField[stuffed_index] = ESCAPE;
             stuffedDataField[stuffed_index + 1] = FLAG_ESC;
             stuffed_index += 2;
@@ -321,7 +321,7 @@ int llwrite(int fd, char *dataField, int dataLength)
         else if (dataField[i] == ESCAPE)
         {
             stuffedDataLength++;
-            stuffedDataField = (char *)realloc(stuffedDataField, stuffedDataLength);
+            stuffedDataField = (unsigned char *)realloc(stuffedDataField, stuffedDataLength);
             stuffedDataField[stuffed_index] = ESCAPE;
             stuffedDataField[stuffed_index + 1] = ESC_ESC;
             stuffed_index += 2;
@@ -340,18 +340,18 @@ int llwrite(int fd, char *dataField, int dataLength)
     //------------------------------------------------------------------
 
     //---------------BCC2 stuffing----------------------
-    char *stuffedBCC2 = (char *)malloc(1);
+    unsigned char *stuffedBCC2 = (unsigned char *)malloc(1);
     int BCC2Length = 1;
     if (BCC2 == FLAG)
     {
-        stuffedBCC2 = (char *)realloc(stuffedBCC2, 2);
+        stuffedBCC2 = (unsigned char *)realloc(stuffedBCC2, 2);
         stuffedBCC2[0] = ESCAPE;
         stuffedBCC2[1] = FLAG_ESC;
         BCC2Length = 2;
     }
     else if (BCC2 == ESCAPE)
     {
-        stuffedBCC2 = (char *)realloc(stuffedBCC2, 2);
+        stuffedBCC2 = (unsigned char *)realloc(stuffedBCC2, 2);
         stuffedBCC2[0] = ESCAPE;
         stuffedBCC2[1] = ESC_ESC;
         BCC2Length = 2;
@@ -365,7 +365,7 @@ int llwrite(int fd, char *dataField, int dataLength)
 
     //----------------Building Frame I---------------------------------
     int frameISize = 5 + BCC2Length + stuffedDataLength; //Size of frame I
-    char frameI[frameISize];         //Allocate memory with size of frame I calculated
+    unsigned char frameI[frameISize];         //Allocate memory with size of frame I calculated
     // printf("frameISize = %i\n", frameISize);
     frameI[0] = FLAG;
     frameI[1] = A_CERR;
@@ -384,7 +384,7 @@ int llwrite(int fd, char *dataField, int dataLength)
     stateMachine_st stateMachine;
     stateMachine.currState = START;
 
-    char response[MAX_SIZE];
+    unsigned char response[MAX_SIZE];
     // char msg[MAX_SIZE];
     alarm(TIME_OUT_SCS);                     // set alarm, 3 seconds timout
     // printf("frameI =\n");
@@ -396,7 +396,6 @@ int llwrite(int fd, char *dataField, int dataLength)
     // printf("\n\n");
     int res = write(fd, frameI, frameISize); //Sends the frame I to the receiver
     // printf("frameISize = %i\n", frameISize);
-
     if (res < 0)
     {
         logError("Unable to write frame I to receiver!\n");
@@ -436,11 +435,11 @@ int llwrite(int fd, char *dataField, int dataLength)
 
 
 //buffer -> Data field stored in the frame I, which has a maximum size of DATA_MAX_SIZE
-int llread(int fd, char *buffer)
+int llread(int fd, unsigned char *buffer)
 {
     int res;
     // char msg[MAX_SIZE];
-    char buf[MAX_SIZE];
+    unsigned char buf[MAX_SIZE];
     int machineState;
     char response[MAX_SIZE];
     stateMachine_st stateMachine;
@@ -457,7 +456,7 @@ int llread(int fd, char *buffer)
 
         if (res != -1)
         {
-            // printf(":%#x:", buf[0]);
+            // printf("received= %#x\n", buf[0]);
             // sprintf(msg, "Received from Transmitter:%#x:%d\n", buf[0], res);
             // logInfo(msg);
             machineState = updateStateMachine_COMMUNICATION(&stateMachine, buf);
@@ -475,7 +474,7 @@ int llread(int fd, char *buffer)
     }
 
     //fazer destuffing ao linklayer.frame
-    char destuffedBCC2;
+    unsigned char destuffedBCC2;
     int stuffedBCC2Size = 2;
     //BCC2 destuffing
     if (linkLayer.frame[frameISize - 3] == ESCAPE && linkLayer.frame[frameISize - 2] == ESC_ESC)
@@ -494,7 +493,7 @@ int llread(int fd, char *buffer)
     //Data destuffing and calculate actual BCC2
     int stuffedDataSize = frameISize - 5 - stuffedBCC2Size;
     int destuffedDataSize = 0;
-    char expectedBCC2 = 0x00;
+    unsigned char expectedBCC2 = 0x00;
     for (int i = 4; i < stuffedDataSize + 4; i++)
     {
         if (linkLayer.frame[i] == ESCAPE)

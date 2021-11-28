@@ -17,7 +17,7 @@ typedef struct {
     char C_Expected;	//valor esperado no campo C (Command) em função do comando que está a ser recebido
 }stateMachine_st;
 
-void updateStateMachine_CONNECTION(stateMachine_st *currStateMachine, char *buf);
-int updateStateMachine_COMMUNICATION(stateMachine_st *currStateMachine, char *buf);
+void updateStateMachine_CONNECTION(stateMachine_st *currStateMachine, unsigned char *buf);
+int updateStateMachine_COMMUNICATION(stateMachine_st *currStateMachine, unsigned char *buf);
 void updateStateMachinellclose(stateMachine_st *currStateMachine, unsigned char *buf, int identity);
 #endif
