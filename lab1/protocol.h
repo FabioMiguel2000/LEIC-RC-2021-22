@@ -19,9 +19,9 @@ struct linkLayer {
 
 int llopen(int portNum, int indentity);
 
-int llwrite(int fd, char *dataField, int dataLength);
+int llwrite(int fd, unsigned char *dataField, int dataLength);
 
-int llread(int fd, char *buffer);
+int llread(int fd, unsigned char *buffer);
 
 int llclose(int fd,int indentity);
 #endif

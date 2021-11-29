@@ -4,7 +4,7 @@ int frameISize;
 extern struct linkLayer linkLayer;
 extern struct applicationLayer applicationLayer;
 
-void updateStateMachine_CONNECTION(stateMachine_st *currStateMachine, char *buf){
+void updateStateMachine_CONNECTION(stateMachine_st *currStateMachine, unsigned char *buf){
     switch(currStateMachine->currState){
         case START: 
             if(buf[0] == FLAG){
@@ -58,7 +58,7 @@ void updateStateMachine_CONNECTION(stateMachine_st *currStateMachine, char *buf)
 }
 
 
-int updateStateMachine_COMMUNICATION(stateMachine_st *currStateMachine, char *buf){
+int updateStateMachine_COMMUNICATION(stateMachine_st *currStateMachine, unsigned char *buf){
     switch(currStateMachine->currState){
         case START:
             if(buf[0] == FLAG){
