@@ -7,6 +7,9 @@
 #include "stateMachine.h"
 #include "protocol.h"
 
+
+int IDENTITY;
+
 struct applicationLayer applicationLayer;
 
 struct dataFile dataFile;

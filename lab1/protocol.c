@@ -71,7 +71,7 @@ int transmitter_SET(int fd)
     { /* loop for input */
         if (timeout)
         {
-            if (timeoutCount >= 3)
+            if (timeoutCount >= MAX_TRIES)
             {
                 logError("TIMEOUT, UA not received!\n");
                 exit(-1);
@@ -85,10 +85,7 @@ int transmitter_SET(int fd)
         res = read(fd, buf, 1); /* returns after 1 char have been input */
         buf[res] = 0;           /* so we can printf... */
 
-        if (res != -1)
-        {
-            // sprintf(msg, "Received from Receiver:%#x:%d\n", buf[0], res);
-            // logInfo(msg);
+        if (res == 1){
             updateStateMachine_CONNECTION(&stateMachine, buf);
         }
     }
@@ -170,125 +167,129 @@ int llopen(int portNum, int identity)
     return fd;
 }
 
-int llclose(int fd,int identity){
-    signal(SIGALRM,timeoutHandler);
-    unsigned char *frame;
+int llclose(int fd){
+    unsigned char *frame = (unsigned char *)malloc(5);
     unsigned char buf;
-    //unsigned char buf[MAX_SIZE];
-    timeout=0;
+    timeout = 0;
     struct termios oldtio;
     stateMachine_st stateMachine;
-    int numch;
-    int numtries=0;
-    switch (identity)
+    int res;
+    int numtries = 0;
+    signal(SIGALRM, timeoutHandler);
+    switch (IDENTITY)
     {
-    case TRANSMITTER: 
-        //envia trama de comando DISC
-        printf("Sending DISC frame...\n");
-        frame=build_ctrl_frame(A_CERR,C_DISC);
-        numch=write(fd,frame,5);
-        if(numch==-1){
-            perror("erro:");      
-            return -1;      
+    case TRANSMITTER:
+        frame[0] = FLAG;
+        frame[1] = A_CERR;
+        frame[2] = C_DISC;
+        frame[3] = BCC(A_CERR, C_DISC); //envia trama de comando DISC
+        frame[4] = FLAG;
+        res = write(fd, frame, 5);
+        if (res < 0){
+            logError("Unable to send DISC to receiver on function llclose()!\n");
+            return -1;
         }
-        else{
-            printf("DISC frame sent Sucessfully.\n");
-        }
+        logInfo("DISC frame was sent, trying to disconnect with receiver.\n");
+        
         //state machine -aguarda disc do receiver
-        stateMachine.currState=START;
-        stateMachine.A_Expected=A_CRRE;//aqui
-        stateMachine.C_Expected=C_DISC;
+        stateMachine.currState = START;
+        stateMachine.A_Expected = A_CRRE; //aqui
+        stateMachine.C_Expected = C_DISC;
         //AGUARDA RESPOSTA TRAMA DE COMANDO DISC COMO RESPOSTA DO RECEIVER
-        alarm(MAX_TIME);          // 3 seconds timout
-        while (stateMachine.currState!=STOP) {       /* loop for input */
-            if(timeout){
+        alarm(TIME_OUT_SCS); // 3 seconds timout
+        while (stateMachine.currState != STOP)
+        { /* loop for input */
+            if (timeout)
+            {
                 numtries++;
-                if(numtries>=MAX_TRIES){
-                    printf("TimeOut!\n");
+                if (numtries >= MAX_TRIES)
+                {
+                    logError("TIMEOUT, DISC not received from received!\n");
                     return -1;
                 }
-                printf("Resending DISC frame\n");
-                numch=write(fd,frame, 5); //SENDS DATA TO RECEIVER AGAIN
-                if(numch==-1){
-                    perror("erro:");      
-                    return -1;      
+                res = write(fd, frame, 5); //SENDS DATA TO RECEIVER AGAIN
+                if (res < 0){
+                    logError("Could not write DISC to receiver, on function llclose()!\n");
+                    return -1;
                 }
-                timeout=0;
-                stateMachine.currState=START;
-                alarm(MAX_TIME);
+                timeout = 0;
+                stateMachine.currState = START;
+                alarm(TIME_OUT_SCS);
             }
-            read(fd,&buf,1);  
-            updateStateMachinellclose(&stateMachine,&buf,identity);   
+            res = read(fd, &buf, 1);
+            if(res == 1){
+                updateStateMachinellclose(&stateMachine, &buf, IDENTITY);
+            }
         }
+        logInfo("DISC frame received from receiver.\n");
         //ENVIA TRAMA DE COMANDO UA
-        frame=build_ctrl_frame(A_CERR,C_UA);
-        write(fd,frame,5);
-        if(numch==-1){
-            perror("erro:");      
-            return -1;      
+        frame[0] = FLAG;
+        frame[1] = A_CRRE;
+        frame[2] = C_UA;
+        frame[3] = BCC(A_CRRE, C_UA);
+        frame[4] = FLAG;
+        res = write(fd, frame, 5);
+        logInfo("UA frame sent to receiver, ready to disconnect.\n");
+        if (res < 0)
+        {
+            logError("Could not respond UA to receiver, on function llclose()!\n");
+            return -1;
         }
         break;
-    
+
     case RECEIVER:
         //STATE MACHINE AGUARDA DISC DO TRANSMITTER
-        stateMachine.currState=START;
-        stateMachine.A_Expected=A_CERR;
-        stateMachine.C_Expected=C_DISC;
-
-        alarm(MAX_TIME);          // 3 seconds timout
+        stateMachine.currState = START;
+        stateMachine.A_Expected = A_CERR;
+        stateMachine.C_Expected = C_DISC;
         //AGUARDA TRAMA (DISC) COMO COMANDO ENVIADO PELO EMISSOR
-        while (stateMachine.currState!=STOP) {   
-            if(timeout){
-                numtries++;
-                if(numtries>=MAX_TRIES+1){
-                    printf("TimeOut!\n");
-                    return -1;
-                }
-                    
-                timeout=0;
-                stateMachine.currState=START;
-                alarm(MAX_TIME);
+        while (stateMachine.currState != STOP)
+        {
+            res = read(fd, &buf, 1);
+            if(res == 1){
+                updateStateMachinellclose(&stateMachine, &buf, IDENTITY);
             }
-            read(fd,&buf,1);
-     
-            updateStateMachinellclose(&stateMachine,&buf,identity);  
         }
-        frame=build_ctrl_frame(A_CRRE,C_DISC);
-        write(fd,frame,5);//Envia Comando (DISC) como resposta ao comando Disc enviado pelo emissor
-        if(numch==-1){
-            perror("erro:");      
-            return -1;      
+        logInfo("DISC frame received, transmitter asking to disconnect.\n");
+        frame[0] = FLAG;
+        frame[1] = A_CRRE;
+        frame[2] = C_DISC;
+        frame[3] = BCC(A_CRRE, C_DISC);
+        frame[4] = FLAG;
+        res = write(fd, frame, 5); //Envia Comando (DISC) 
+        if (res < 0)
+        {
+            logError("Could not write DISC to transmitter, on function llclose()!\n");
+            return -1;
         }
+        logInfo("DISC frame was sent, trying to disconnect with transmitter.\n");
+
         //STATE MACHINE AGUARDA UA DO TRANSMITTER
-        alarm(MAX_TIME);          // 3 seconds timout
-        stateMachine.currState=START;
-        stateMachine.A_Expected=A_CERR;
-        stateMachine.C_Expected=C_UA;
-        while (stateMachine.currState!=STOP) {       /* loop for input */
-            if(timeout){
-                timeout=0;
-                stateMachine.currState=START;
-                alarm(MAX_TIME);
+        stateMachine.currState = START;
+        stateMachine.A_Expected = A_CRRE;
+        stateMachine.C_Expected = C_UA;
+        while (stateMachine.currState != STOP)
+        { /* loop for input */
+            res = read(fd, &buf, 1); /* returns after 1 char have been input */
+            if(res == 1){
+                updateStateMachinellclose(&stateMachine, &buf, IDENTITY);
             }
-            read(fd,&buf,1);   /* returns after 1 char have been input */
-            updateStateMachinellclose(&stateMachine,&buf,identity);  
         }
+        logInfo("UA frame received, ready to disconnect.\n");
         break;
     default:
         break;
     }
-       
-   
-    if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
-      perror("tcsetattr");
-      return -1;
+
+    if (tcsetattr(fd, TCSANOW, &oldtio) == -1)
+    {
+        perror("tcsetattr");
+        return -1;
     }
     close(fd);
-    printf("Successfully closed link.\n");
+    logSuccess("Application successfully terminated!\n");
     return 0;
-
 }
-
 
 int llwrite(int fd, unsigned char *dataField, int dataLength)
 {
@@ -304,7 +305,7 @@ int llwrite(int fd, unsigned char *dataField, int dataLength)
 
     //----------------Data Field Stuffing--------------------------------
     unsigned char *stuffedDataField = (unsigned char *)malloc(dataLength); //Data field after stuffing
-    int stuffedDataLength = dataLength;                  //Size of dataField after stuffing
+    int stuffedDataLength = dataLength;                                    //Size of dataField after stuffing
 
     stuffedDataField[0] = dataField[0];
     int stuffed_index = 0;
@@ -365,7 +366,7 @@ int llwrite(int fd, unsigned char *dataField, int dataLength)
 
     //----------------Building Frame I---------------------------------
     int frameISize = 5 + BCC2Length + stuffedDataLength; //Size of frame I
-    unsigned char frameI[frameISize];         //Allocate memory with size of frame I calculated
+    unsigned char frameI[frameISize];                    //Allocate memory with size of frame I calculated
     // printf("frameISize = %i\n", frameISize);
     frameI[0] = FLAG;
     frameI[1] = A_CERR;
@@ -374,7 +375,6 @@ int llwrite(int fd, unsigned char *dataField, int dataLength)
     memcpy(&frameI[4], stuffedDataField, stuffedDataLength);
     memcpy(&frameI[4 + stuffedDataLength], stuffedBCC2, BCC2Length);
     frameI[4 + stuffedDataLength + BCC2Length] = FLAG;
-
 
     //-------------------------------------------------------------------
     signal(SIGALRM, timeoutHandler);
@@ -386,7 +386,7 @@ int llwrite(int fd, unsigned char *dataField, int dataLength)
 
     unsigned char response[MAX_SIZE];
     // char msg[MAX_SIZE];
-    alarm(TIME_OUT_SCS);                     // set alarm, 3 seconds timout
+    alarm(TIME_OUT_SCS); // set alarm, 3 seconds timout
     // printf("frameI =\n");
     // for (int i = 0; i < frameISize; i++)
     // {
@@ -429,10 +429,9 @@ int llwrite(int fd, unsigned char *dataField, int dataLength)
         }
         //stateMachine.currState = STOP;
     }
-    linkLayer.sequenceNumber = (linkLayer.sequenceNumber + 1) %2;
+    linkLayer.sequenceNumber = (linkLayer.sequenceNumber + 1) % 2;
     return frameISize;
 }
-
 
 //buffer -> Data field stored in the frame I, which has a maximum size of DATA_MAX_SIZE
 int llread(int fd, unsigned char *buffer)
@@ -445,14 +444,13 @@ int llread(int fd, unsigned char *buffer)
     stateMachine_st stateMachine;
     stateMachine.currState = START;
 
-
     response[0] = FLAG;
     response[1] = A_CERR;
     response[4] = FLAG;
     while (stateMachine.currState != STOP)
-    {                                /* loop for input */
+    {                           /* loop for input */
         res = read(fd, buf, 1); /* returns after 1 char have been input */
-        buf[res] = 0;                /* so we can printf... */
+        buf[res] = 0;           /* so we can printf... */
 
         if (res != -1)
         {

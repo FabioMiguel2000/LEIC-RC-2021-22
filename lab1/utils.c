@@ -2,19 +2,19 @@
 
 void logError(char *msg){
     char buf[MAX_SIZE];
-    sprintf(buf, ">>>ERROR:\t%s\n", msg);
+    sprintf(buf, "\033[0;33m>>>ERROR:\t%s\n\033[0m", msg);
     write(STDOUT_FILENO, buf, strlen(buf));
 }
 
 void logSuccess(char *msg){
     char buf[MAX_SIZE];
-    sprintf(buf, ">>>SUCCESS:\t%s\n", msg);
+    sprintf(buf, "\033[0;32m>>>SUCCESS:\t%s\n\033[0m", msg);
     write(STDOUT_FILENO, buf, strlen(buf));
 }
 
 void logWarning(char *msg){
     char buf[MAX_SIZE];
-    sprintf(buf, ">>>WARNING:\t%s\n", msg);
+    sprintf(buf, "\033[0;33m>>>WARNING:\t%s\n\033[0m", msg);
     write(STDOUT_FILENO, buf, strlen(buf));
 }
 
