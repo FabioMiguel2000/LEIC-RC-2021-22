@@ -4,7 +4,9 @@
 #include "macros.h"
 #include "utils.h"
 #include "stateMachine.h"
+#include "application.h"
 
+extern int IDENTITY;
 
 struct linkLayer linkLayer;
 
@@ -17,11 +19,11 @@ struct linkLayer {
     char frame[WORST_CASE_FRAME_I];           /*Trama*/
 };
 
-int llopen(int portNum, int indentity);
+int llopen(int portNum, int identity);
 
 int llwrite(int fd, unsigned char *dataField, int dataLength);
 
 int llread(int fd, unsigned char *buffer);
 
-int llclose(int fd,int indentity);
+int llclose(int fd);
 #endif

@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall
 TARGET = application
-OBJS = application.o stateMachine.o utils.o protocol.o msg.o
+OBJS = application.o stateMachine.o utils.o protocol.o
 DEPS = $(OBJS:.o=.h) macros.h
 
 %.o: %.c $(DEPS)

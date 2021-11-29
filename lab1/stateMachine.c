@@ -224,7 +224,7 @@ void updateStateMachinellclose(stateMachine_st *currStateMachine, unsigned char 
             }
             break;
         case C_RCV:
-            if(*buf== (currStateMachine->A_field ^ currStateMachine->C_field)){ //Check BCC
+            if(*buf== BCC(currStateMachine->A_field,currStateMachine->C_field)){ //Check BCC
                 currStateMachine->currState = BCC1_OK;
             }
             else if(*buf== FLAG){

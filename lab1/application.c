@@ -20,7 +20,6 @@ int parseArgs(int argc, char **argv)
 }
 
 
-
 int sendPacket(int fd)
 {
     char msg[MAX_SIZE];
@@ -67,7 +66,7 @@ int sendPacket(int fd)
     unsigned char data[DATA_MAX_SIZE - 4];
     
 
-    sprintf(msg, "File Information:\n\tFile name: %s\n\tFile total size: %ld Bytes\n", dataFile.filename, dataFile.filesize);
+    sprintf(msg, "File Information:\n\t\tFile name: %s\n\t\tFile total size: %ld Bytes\n", dataFile.filename, dataFile.filesize);
     logInfo(msg);
     logInfo("Starting to send file data...\n");
 
@@ -117,7 +116,6 @@ int sendPacket(int fd)
     }
 
     logInfo("END control packet was transmitted!\n");
-    logSuccess("Finished Data transmission!\n");
 
     return 0;
 }
@@ -181,9 +179,7 @@ int receivePacket(int fd)
                     for (int i = 0; i < V_fieldSize; i++)
                     {
                         dataFile.filesize += dataField[bytesProccessed + 2 + i] << 8 * i;
-                        // printf("size = %#x\n", dataField[bytesProccessed + 2 + i]);
                     }
-                    printf("\ndatafile size is %li\n", dataFile.filesize);
 
                     bytesProccessed += V_fieldSize + 1;
                 }
@@ -195,7 +191,6 @@ int receivePacket(int fd)
                         dataFile.filename[i] = dataField[bytesProccessed + 2 + i];
 
                     }
-                    printf("\ndatafile name is %s\n", dataFile.filename);
                     bytesProccessed += V_fieldSize + 1;
                 }
                 bytesProccessed ++;
@@ -208,7 +203,7 @@ int receivePacket(int fd)
                 logError("Unable to open file to load data!\n");
                 return -1;
             }
-            sprintf(msg, "File Information:\n\tFile name: %s\n\tFile total size: %ld Bytes\n", dataFile.filename, dataFile.filesize);
+            sprintf(msg, "File Information:\n\t\tFile name: %s\n\t\tFile total size: %ld Bytes\n", dataFile.filename, dataFile.filesize);
             logInfo(msg);
             // linkLayer.sequenceNumber = (linkLayer.sequenceNumber + 1) % 2;
         }
@@ -222,12 +217,12 @@ int receivePacket(int fd)
             
             if (totalSizeLoaded == dataFile.filesize)
             {
-                sprintf(msg, "All %li bytes successfully received!", totalSizeLoaded);
+                sprintf(msg, "All %li bytes successfully received!\n", totalSizeLoaded);
                 logSuccess(msg);
             }
             else
             {
-                sprintf(msg, "Only %li bytes received, expected %li bytes!", totalSizeLoaded, dataFile.filesize);
+                sprintf(msg, "Only %li bytes received, expected %li bytes!\n", totalSizeLoaded, dataFile.filesize);
                 logWarning(msg);
             }
         }
@@ -252,12 +247,14 @@ int main(int argc, char **argv)
     switch (applicationLayer.status)
     {
     case TRANSMITTER:
+        IDENTITY = TRANSMITTER;
         if (sendPacket(fd) < -1)
         {
             exit(-1);
         }
         break;
     case RECEIVER:
+        IDENTITY = RECEIVER;
         if(receivePacket(fd) < -1){
             exit(-1);
         }
@@ -265,7 +262,7 @@ int main(int argc, char **argv)
     default:
         break;
     }
-    // llclose(fd,applicationLayer.status);
+    llclose(fd);
 
     return 0;
 }
