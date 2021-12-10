@@ -11,6 +11,7 @@
 #define TIME_OUT_SCS 3               //tempo maximo de espera para reenvio de trama SET por emissor
 #define TIME_OUT_CHANCES 3        //Numero de tentativas de timeout 
 
+
 /*          Control Packge        */
 #define CTRL_PACK_C_DATA    0x01
 #define CTRL_PACK_C_START   0x02

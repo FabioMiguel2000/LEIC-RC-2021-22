@@ -2,6 +2,7 @@
 
 extern int timeout, timeoutCount;
 extern int frameISize;
+struct termios oldtio;
 
 int receiver_UA(int fd)
 {
@@ -106,7 +107,7 @@ int llopen(int portNum, int identity)
     linkLayer.timeout = TIME_OUT_SCS;
     linkLayer.numTransmissions = TIME_OUT_CHANCES;
 
-    struct termios oldtio, newtio;
+    struct termios newtio;
     fd = open(linkLayer.port, O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (fd < 0)
     {
@@ -171,7 +172,6 @@ int llclose(int fd){
     unsigned char *frame = (unsigned char *)malloc(5);
     unsigned char buf;
     timeout = 0;
-    struct termios oldtio;
     stateMachine_st stateMachine;
     int res;
     int numtries = 0;
@@ -262,20 +262,32 @@ int llclose(int fd){
             logError("Could not write DISC to transmitter, on function llclose()!\n");
             return -1;
         }
-        logInfo("DISC frame was sent, trying to disconnect with transmitter.\n");
+        logInfo("DISC frame was sent, waiting for UA response from transmitter.\n");
 
         //STATE MACHINE AGUARDA UA DO TRANSMITTER
         stateMachine.currState = START;
         stateMachine.A_Expected = A_CRRE;
         stateMachine.C_Expected = C_UA;
+        signal(SIGALRM, disconnectTimeout);
+        alarm(TIME_OUT_SCS);
         while (stateMachine.currState != STOP)
         { /* loop for input */
             res = read(fd, &buf, 1); /* returns after 1 char have been input */
             if(res == 1){
                 updateStateMachinellclose(&stateMachine, &buf, IDENTITY);
             }
+            if(timeout){
+                break;
+            }
         }
-        logInfo("UA frame received, ready to disconnect.\n");
+        if(timeout){
+            timeout = 0;
+            logWarning("UA was not responded, ready to disconnect.\n");
+        }
+        else{
+            logInfo("UA frame received, ready to disconnect.\n");
+        }
+
         break;
     default:
         break;
@@ -283,7 +295,7 @@ int llclose(int fd){
 
     if (tcsetattr(fd, TCSANOW, &oldtio) == -1)
     {
-        perror("tcsetattr");
+        logError("Function llclose(), error on tcsetattr\n!");
         return -1;
     }
     close(fd);

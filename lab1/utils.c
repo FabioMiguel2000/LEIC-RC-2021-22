@@ -40,3 +40,8 @@ void timeoutHandler()                   // atende alarme
 	logWarning(buf);
 
 }
+
+void disconnectTimeout()                   // atende alarme
+{
+	timeout=1;
+}

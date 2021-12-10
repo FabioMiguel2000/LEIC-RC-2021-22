@@ -17,6 +17,8 @@ int timeout,timeoutCount;
 
 void timeoutHandler();
 
+void disconnectTimeout();
+
 void logError(char *msg);
 
 void logSuccess(char *msg);
