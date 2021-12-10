@@ -1,24 +1,63 @@
 #include "application.h"
 
 int parseArgs(int argc, char **argv)
-{
-    if (argc == 3 && strcmp("/dev/ttyS10", argv[2]) == 0)
+{   
+    if(argc != 2){
+        return -1;
+    }
+    if (strcmp("/dev/ttyS10", argv[1]) == 0)
     {
-        applicationLayer.status = TRANSMITTER;
-        strcpy(dataFile.filename, argv[1]);
-        struct stat fileInfo;
-        stat(dataFile.filename, &fileInfo);
-        dataFile.filesize = fileInfo.st_size;
         return 10;
     }
-    if (argc == 2 && strcmp("/dev/ttyS11", argv[1]) == 0)
+    if (strcmp("/dev/ttyS11", argv[1]) == 0)
     {
-        applicationLayer.status = RECEIVER;
         return 11;
+    }
+    if (strcmp("/dev/ttyS0", argv[1]) == 0)
+    {
+        return 0;
+    }
+    if (strcmp("/dev/ttyS1", argv[1]) == 0)
+    {
+        return 1;
     }
     return -1;
 }
 
+int getArgs(){
+    char buf[MAX_SIZE];
+    do{
+        logInfo("Choose identity:\n\t\t1.RECEIVER\n\t\t2.TRANSMITTER\n  ");
+        fgets(buf, MAX_SIZE, stdin);
+        if(buf[strlen(buf)-1] ==  '\n'){  //Removes newline from buffer
+            buf[strlen(buf)-1] = '\0';
+        }
+        if(strcmp("1", buf) == 0 || strcmp("RECEIVER", buf) == 0){
+            applicationLayer.status = RECEIVER;
+            break;
+        }
+        if(strcmp("2", buf) == 0 || strcmp("TRANSMITTER", buf) == 0){
+            do{
+                logInfo("Input name of file to transmit\n");
+                fgets(buf, MAX_SIZE, stdin);
+                if(buf[strlen(buf)-1] ==  '\n'){  //Removes newline from buffer
+                    buf[strlen(buf)-1] = '\0';
+                }
+                strcpy(dataFile.filename, buf);
+                struct stat fileInfo;
+                if(stat(dataFile.filename, &fileInfo) == 0){
+                    dataFile.filesize = fileInfo.st_size;
+                    break;
+                }
+                logWarning("No file found! Please try again!\n");
+            } while (1);
+            applicationLayer.status = TRANSMITTER;
+            break;
+        }
+        logWarning("Invalid input! Please try again!\n");
+    } while (1);
+    return 0;
+}
 
 int sendPacket(int fd)
 {
@@ -231,7 +270,9 @@ int receivePacket(int fd)
 }
 
 int main(int argc, char **argv)
+
 {
+    
     int portNum = parseArgs(argc, argv);
 
     if (portNum < 0)
@@ -239,6 +280,7 @@ int main(int argc, char **argv)
         logUsage();
         exit(-1);
     }
+    getArgs();
     int fd = llopen(portNum, applicationLayer.status);
     if (fd < 0)
     {

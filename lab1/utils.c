@@ -26,7 +26,7 @@ void logInfo(char *msg){
 
 void logUsage(){
     char buf[MAX_SIZE];
-    sprintf(buf, "Usage:\t./application <filename|TRANSMITTER ONLY> <serialPort>\nFor receiver: use port /dev/ttyS10\nFor transmitter: use port /dev/ttyS11\n");
+    sprintf(buf, "Usage:\t./application <SerialPort>\n\tex: ./application /dev/ttyS10\n");
     write(STDOUT_FILENO, buf, strlen(buf));
     
 }
