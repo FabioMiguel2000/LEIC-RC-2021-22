@@ -4,6 +4,8 @@
 #define RECEIVER    1
 #define DATA_MAX_SIZE 1024
 #define WORST_CASE_FRAME_I (DATA_MAX_SIZE*2 + 2 + 5) // Considering every data byte stuffed and BCC2 stuffed + 5 (Flag, field A, field C, BCC1, FLAG)
+#define ERROR_PROBABILITY_BCC1  0;         //Error probability for BCC1 in percentage (range 0 to 100)
+#define ERROR_PROBABILITY_BCC2  10;         //Error probability for BCC2 in percentage (range 0 to 100)
 
 #define MAX_TIME 3               //  Tempo de espera até reenvio de trama SET pelo Emissor
 #define MAX_TRIES 3

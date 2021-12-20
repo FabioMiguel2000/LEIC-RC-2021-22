@@ -45,4 +45,8 @@ void endTimeElapsed();
 
 void logStats();
 
+void generateErrorBCC2(unsigned char *frame, int size, int stuffedBCC2Size);
+
+void generateErrorBCC1(unsigned char *frame);
+
 #endif

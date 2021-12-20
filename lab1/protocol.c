@@ -406,14 +406,21 @@ int llwrite(int fd, unsigned char *dataField, int dataLength)
     //     printf("%#x",frameI[i]);
     // }
     // printf("\n\n");
-    int res = write(fd, frameI, frameISize); //Sends the frame I to the receiver
+    unsigned char frameIProbError[frameISize];  //This frame maybe changed to a frame with error
+    memcpy(&frameIProbError[0], frameI, frameISize);
+    // printf("With Error = %i", strcmp(&frameIProbError, &frameI));
+
+    generateErrorBCC1(frameIProbError);
+    generateErrorBCC2(frameIProbError, frameISize, BCC2Length);
+
+    int res = write(fd, frameIProbError, frameISize); //Sends the frame I (that may contain an error) to the receiver
     // printf("frameISize = %i\n", frameISize);
     if (res < 0)
     {
         logError("Unable to write frame I to receiver!\n");
         exit(-1);
     }
-
+    int status = 0;
     //  Waits for response (RR or REJ from receiver), and resends the frame if needed
     while (stateMachine.currState != STOP)
     { /* loop for input */
@@ -424,8 +431,16 @@ int llwrite(int fd, unsigned char *dataField, int dataLength)
                 logError("TIMEOUT, UA not received!\n");
                 exit(-1);
             }
-            res = write(fd, frameI, 5); //SENDS DATA TO RECEIVER AGAIN
+            res = write(fd, frameI, frameISize); //SENDS DATA TO RECEIVER AGAIN
+            printf("Resent!due to timeout\n");
             timeout = 0;
+            stateMachine.currState = START;
+            alarm(TIME_OUT_SCS);
+        }
+        else if(status == -1){
+            res = write(fd, frameI, frameISize); //REJECTED, SENDS DATA TO RECEIVER AGAIN
+            printf("Resent! due to reject\n");
+
             stateMachine.currState = START;
             alarm(TIME_OUT_SCS);
         }
@@ -437,7 +452,7 @@ int llwrite(int fd, unsigned char *dataField, int dataLength)
         {
             // sprintf(msg, "Received from Receiver:%#x:%d\n", response[0], res);
             // logInfo(msg);
-            updateStateMachine_COMMUNICATION(&stateMachine, response);
+            status = updateStateMachine_COMMUNICATION(&stateMachine, response);
         }
         //stateMachine.currState = STOP;
     }
@@ -475,6 +490,7 @@ int llread(int fd, unsigned char *buffer)
                 response[2] = C_REJ((linkLayer.sequenceNumber + 1) % 2);
                 response[3] = BCC(A_CERR, C_REJ((linkLayer.sequenceNumber + 1) % 2));
                 res = write(fd, response, 5);
+                printf("Reject sent!\n");
                 if (res < 0)
                 {
                     logError("Unable to send REJ to transmitter!\n");
@@ -527,7 +543,7 @@ int llread(int fd, unsigned char *buffer)
     }
     if (expectedBCC2 != destuffedBCC2)
     {
-        logWarning("Incorrect BCC received from receiver");
+        logWarning("Incorrect BCC2 received from receiver");
         response[2] = C_REJ((linkLayer.sequenceNumber + 1) % 2);
         response[3] = BCC(A_CERR, C_REJ((linkLayer.sequenceNumber + 1) % 2));
         res = write(fd, response, 5);
@@ -536,6 +552,7 @@ int llread(int fd, unsigned char *buffer)
             logError("Unable to send REJ to transmitter!\n");
             return -1;
         }
+        return -1;
     }
 
     // printf("\nInside the llread=>\n");

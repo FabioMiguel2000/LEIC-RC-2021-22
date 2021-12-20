@@ -101,9 +101,10 @@ int updateStateMachine_COMMUNICATION(stateMachine_st *currStateMachine, unsigned
                     currStateMachine->C_field = buf[0];
                     
                 }
-                else if(buf[0] == C_REJ((linkLayer.sequenceNumber+1) % 2)){
+                else if(buf[0] == C_REJ(linkLayer.sequenceNumber)){
                     logWarning("Frame was rejected by receiver!\n");
                     currStateMachine->currState = START;
+                    // return -1;
                 }
                 else if(buf[0] == FLAG){
                     currStateMachine->currState = FLAG_RCV;
@@ -182,6 +183,7 @@ int updateStateMachine_COMMUNICATION(stateMachine_st *currStateMachine, unsigned
             frameISize ++;
             if(buf[0] == FLAG){
                 currStateMachine->currState = STOP;
+                
             }
         case STOP:
             break;
