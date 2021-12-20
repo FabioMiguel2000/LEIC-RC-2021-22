@@ -305,8 +305,8 @@ int main(int argc, char **argv)
     default:
         break;
     }
-    llclose(fd);
     endTimeElapsed();
+    llclose(fd);
     logStats();
     return 0;
 }
