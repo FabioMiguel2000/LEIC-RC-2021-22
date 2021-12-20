@@ -36,7 +36,6 @@ int sendPacket(int fd);
 
 int main(int argc, char** arg);
 
-
 int getArgs();
 
 #endif

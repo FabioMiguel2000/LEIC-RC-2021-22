@@ -286,6 +286,7 @@ int main(int argc, char **argv)
     {
         exit(-1);
     }
+    startTimeElapsed();
     switch (applicationLayer.status)
     {
     case TRANSMITTER:
@@ -305,6 +306,7 @@ int main(int argc, char **argv)
         break;
     }
     llclose(fd);
-
+    endTimeElapsed();
+    logStats();
     return 0;
 }

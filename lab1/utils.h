@@ -10,8 +10,18 @@
 #include <unistd.h>
 #include <string.h>
 #include <signal.h>
+#include <time.h>
+#include "application.h"
 
 #include "macros.h"
+
+struct timeElapsed timeElapsed;
+
+struct timeElapsed {
+    clock_t start;
+    clock_t end;
+    double timeTaken;
+};
 
 int timeout,timeoutCount;
 
@@ -29,5 +39,10 @@ void logWarning(char *msg);
 
 void logUsage();
 
+void startTimeElapsed();
+
+void endTimeElapsed();
+
+void logStats();
 
 #endif
