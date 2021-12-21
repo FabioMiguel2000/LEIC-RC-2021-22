@@ -58,16 +58,18 @@ void endTimeElapsed(){
 
 void logStats(){
     char buf[MAX_SIZE];
-    sprintf(buf, "Transmission Time: %fs\nTransmission Rate: %fb/s\n", timeElapsed.timeTaken, dataFile.filesize/timeElapsed.timeTaken);
+    sprintf(buf, "Transmission Time: %f s\nTransmission Rate: %f bits/s\n", timeElapsed.timeTaken, dataFile.filesize/timeElapsed.timeTaken);
     write(STDOUT_FILENO, buf, strlen(buf));
 }
 //Generate Error functions must be used before transmitter sending the frame to receiver
 void generateErrorBCC2(unsigned char *frame, int size, int stuffedBCC2Size){
   int errorFlag = (rand() % 100) < ERROR_PROBABILITY_BCC2;
   if (errorFlag){
+    char buf[MAX_SIZE];
     int index = (rand() % (size - 1 - stuffedBCC2Size)) + 4;  //Index only in data field range
     frame[index] = frame[index] ^ 0xff;         //Negates a byte
-    printf("\nGenerate BCC2 with errors.\nFrame at index: %i = %#x => %#x\n", index, frame[index] ^ 0xff, frame[index]);
+    sprintf(buf,"Generated BCC2 with errors.\n\t\t> Frame at index: %i = %#x => %#x\n", index, frame[index] ^ 0xff, frame[index]);
+    logWarning(buf);
   }
 }
 
@@ -75,9 +77,10 @@ void generateErrorBCC1(unsigned char *frame){
   int errorFlag = (rand() % 100) < ERROR_PROBABILITY_BCC1;
   if (errorFlag)
   {
+    char buf[MAX_SIZE];
     int index = (rand() % 2)+1;   //Index only in header field
     frame[index] = frame[index] ^ 0xff;         //Negates a byte
-    printf("\nGenerate BCC1 with errors.\nFrame at index: %i = %#x => %#x\n", index, frame[index] ^ 0xff, frame[index]);
-
+    sprintf(buf, "Generated BCC1 with errors.\n\t\t> Frame at index: %i = %#x => %#x\n", index, frame[index] ^ 0xff, frame[index]);
+    logWarning(buf);
   }
 }

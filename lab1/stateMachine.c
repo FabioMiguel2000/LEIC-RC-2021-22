@@ -102,9 +102,9 @@ int updateStateMachine_COMMUNICATION(stateMachine_st *currStateMachine, unsigned
                     
                 }
                 else if(buf[0] == C_REJ(linkLayer.sequenceNumber)){
-                    logWarning("Frame was rejected by receiver!\n");
+                    logError("REJ received! Frame was rejected by receiver!\n");
                     currStateMachine->currState = START;
-                    // return -1;
+                    return -1;
                 }
                 else if(buf[0] == FLAG){
                     currStateMachine->currState = FLAG_RCV;
@@ -123,7 +123,7 @@ int updateStateMachine_COMMUNICATION(stateMachine_st *currStateMachine, unsigned
                 else if(buf[0] != C_I((linkLayer.sequenceNumber+1) % 2)){
                     currStateMachine->currState = START;
                     frameISize = 0;
-                    logWarning("Incorrect Control Field received from transmitter!\n ");
+                    logError("Incorrect Control Field received from transmitter!\n ");
                     return INCORRECT_C_FIELD;
                 }
                 else if(buf[0] == FLAG){
@@ -149,7 +149,7 @@ int updateStateMachine_COMMUNICATION(stateMachine_st *currStateMachine, unsigned
                 if(applicationLayer.status == RECEIVER){
                     currStateMachine->currState = START;
                     frameISize = 0;
-                    logWarning("Incorrect BCC1 received from transmitter!\n ");
+                    logError("Incorrect BCC1 received from transmitter!\n ");
                     return INCORRECT_BCC1_FIELD;
                 }
             }
@@ -183,7 +183,7 @@ int updateStateMachine_COMMUNICATION(stateMachine_st *currStateMachine, unsigned
             frameISize ++;
             if(buf[0] == FLAG){
                 currStateMachine->currState = STOP;
-                
+
             }
         case STOP:
             break;

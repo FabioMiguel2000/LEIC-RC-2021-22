@@ -432,17 +432,17 @@ int llwrite(int fd, unsigned char *dataField, int dataLength)
                 exit(-1);
             }
             res = write(fd, frameI, frameISize); //SENDS DATA TO RECEIVER AGAIN
-            printf("Resent!due to timeout\n");
+            logWarning("Resending Frame, due to TIMEOUT!\n");
             timeout = 0;
             stateMachine.currState = START;
             alarm(TIME_OUT_SCS);
         }
-        else if(status == -1){
+        else if(status == -1){  //Rejected
+
             res = write(fd, frameI, frameISize); //REJECTED, SENDS DATA TO RECEIVER AGAIN
-            printf("Resent! due to reject\n");
+            logWarning("Resending Frame, due to REJECT!\n");
 
             stateMachine.currState = START;
-            alarm(TIME_OUT_SCS);
         }
 
         res = read(fd, response, 1); /* returns after 1 char have been input */
@@ -543,7 +543,7 @@ int llread(int fd, unsigned char *buffer)
     }
     if (expectedBCC2 != destuffedBCC2)
     {
-        logWarning("Incorrect BCC2 received from receiver");
+        logError("Incorrect BCC2 received from receiver!\n");
         response[2] = C_REJ((linkLayer.sequenceNumber + 1) % 2);
         response[3] = BCC(A_CERR, C_REJ((linkLayer.sequenceNumber + 1) % 2));
         res = write(fd, response, 5);
