@@ -16,8 +16,31 @@ typedef struct {
     char A_Expected;  //valor esperado no campo A (Command) em função do comando que está a ser recebido
     char C_Expected;	//valor esperado no campo C (Command) em função do comando que está a ser recebido
 }stateMachine_st;
+/**
+ * @brief Update state machine according to received byte to establish connection.
+ * 
+ * @param currStateMachine   Pointer to state machine
+ * @param buf      Byte received, will decide the transition
+ * @return int      0 on success, other value otherwise
+ */
 
 void updateStateMachine_CONNECTION(stateMachine_st *currStateMachine, unsigned char *buf);
+/**
+ * @brief Update state machine according to received byte.
+ * 
+ * @param currStateMachine   Pointer to state machine
+ * @param buf      Byte received, will decide the transition
+ * @return int      0 on success, other value otherwise
+ */
 int updateStateMachine_COMMUNICATION(stateMachine_st *currStateMachine, unsigned char *buf);
+
+/**
+ * @brief Update state machine according to received byte to be ussed in llclose.
+ * 
+ * @param currStateMachine   Pointer to state machine
+ * @param buf      Byte received, will decide the transition
+ * @param identity Reference if it is TRANSMITER or RECEIVER
+ * @return int      0 on success, other value otherwise
+ */
 void updateStateMachinellclose(stateMachine_st *currStateMachine, unsigned char *buf, int identity);
 #endif
