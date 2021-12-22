@@ -8,7 +8,7 @@ int receiver_UA(int fd)
 {
     int res;
     unsigned char buf[MAX_SIZE];
-    // char msg[MAX_SIZE];
+
     stateMachine_st stateMachine;
     stateMachine.currState = START;
 
@@ -20,8 +20,6 @@ int receiver_UA(int fd)
         buf[res] = 0;           /* so we can printf... */
         if (res != -1)
         {
-            // sprintf(msg, "Received from Transmitter:%#x:%d\n", buf[0], res);
-            // logInfo(msg);
             updateStateMachine_CONNECTION(&stateMachine, buf);
         }
     }
@@ -43,7 +41,6 @@ int transmitter_SET(int fd)
 {
     int res;
     unsigned char buf[MAX_SIZE];
-    // char msg[MAX_SIZE];
 
     buf[0] = FLAG;
     buf[1] = A_CERR;
@@ -101,7 +98,6 @@ int llopen(int portNum, int identity)
 
     //  initiate linkLayer struct
     sprintf(linkLayer.port, "/dev/ttyS%i", portNum);
-    // strcpy(&linkLayer.port, tempPort);
     linkLayer.baudRate = BAUDRATE;
     linkLayer.sequenceNumber = identity == TRANSMITTER ? 0 : 1;
     linkLayer.timeout = TIME_OUT_SCS;
@@ -312,7 +308,6 @@ int llwrite(int fd, unsigned char *dataField, int dataLength)
     {
         BCC2 ^= dataField[i];
     }
-    // printf("BCC2 before stuffing: %#x\n", BCC2);
     //------------------------------------------------------------------
 
     //----------------Data Field Stuffing--------------------------------
@@ -345,11 +340,7 @@ int llwrite(int fd, unsigned char *dataField, int dataLength)
             stuffed_index += 1;
         }
     }
-    // printf("stuffed size: %i\n", stuffedDataLength);
-    // for (int i = 0; i < stuffedDataLength; i++)
-    // {
-    //     printf("data at position [%i] = %#x\n", i, stuffedDataField[i]);
-    // }
+
     //------------------------------------------------------------------
 
     //---------------BCC2 stuffing----------------------
@@ -373,13 +364,11 @@ int llwrite(int fd, unsigned char *dataField, int dataLength)
     {
         stuffedBCC2[0] = BCC2;
     }
-    // printf("BCC2 after stuffing: %#x\n", stuffedBCC2[0]);
     //--------------------------------------------------
 
     //----------------Building Frame I---------------------------------
     int frameISize = 5 + BCC2Length + stuffedDataLength; //Size of frame I
     unsigned char frameI[frameISize];                    //Allocate memory with size of frame I calculated
-    // printf("frameISize = %i\n", frameISize);
     frameI[0] = FLAG;
     frameI[1] = A_CERR;
     frameI[2] = C_I(linkLayer.sequenceNumber);
@@ -397,24 +386,16 @@ int llwrite(int fd, unsigned char *dataField, int dataLength)
     stateMachine.currState = START;
 
     unsigned char response[MAX_SIZE];
-    // char msg[MAX_SIZE];
+
     alarm(TIME_OUT_SCS); // set alarm, 3 seconds timout
-    // printf("frameI =\n");
-    // for (int i = 0; i < frameISize; i++)
-    // {
-    //     // printf("frameI [%i] = %#x\n", i, frameI[i]);
-    //     printf("%#x",frameI[i]);
-    // }
-    // printf("\n\n");
+
     unsigned char frameIProbError[frameISize];  //This frame maybe changed to a frame with error
     memcpy(&frameIProbError[0], frameI, frameISize);
-    // printf("With Error = %i", strcmp(&frameIProbError, &frameI));
 
     generateErrorBCC1(frameIProbError);
     generateErrorBCC2(frameIProbError, frameISize, BCC2Length);
 
     int res = write(fd, frameIProbError, frameISize); //Sends the frame I (that may contain an error) to the receiver
-    // printf("frameISize = %i\n", frameISize);
     if (res < 0)
     {
         logError("Unable to write frame I to receiver!\n");
@@ -450,8 +431,7 @@ int llwrite(int fd, unsigned char *dataField, int dataLength)
 
         if (res != -1)
         {
-            // sprintf(msg, "Received from Receiver:%#x:%d\n", response[0], res);
-            // logInfo(msg);
+
             status = updateStateMachine_COMMUNICATION(&stateMachine, response);
         }
         //stateMachine.currState = STOP;
@@ -464,7 +444,6 @@ int llwrite(int fd, unsigned char *dataField, int dataLength)
 int llread(int fd, unsigned char *buffer)
 {
     int res;
-    // char msg[MAX_SIZE];
     unsigned char buf[MAX_SIZE];
     int machineState;
     char response[MAX_SIZE];
@@ -481,9 +460,7 @@ int llread(int fd, unsigned char *buffer)
 
         if (res != -1)
         {
-            // printf("received= %#x\n", buf[0]);
-            // sprintf(msg, "Received from Transmitter:%#x:%d\n", buf[0], res);
-            // logInfo(msg);
+
             machineState = updateStateMachine_COMMUNICATION(&stateMachine, buf);
             if (machineState == INCORRECT_C_FIELD || machineState == INCORRECT_BCC1_FIELD)
             {
@@ -555,11 +532,7 @@ int llread(int fd, unsigned char *buffer)
         return -1;
     }
 
-    // printf("\nInside the llread=>\n");
-    // for(int i = 0; i < destuffedDataSize; i++){
-    //     printf("%#x", buffer[i]);
-    // }
-    // printf("\n");
+
     response[2] = C_RR(linkLayer.sequenceNumber);
     response[3] = BCC(A_CERR, C_RR(linkLayer.sequenceNumber));
     write(fd, response, 5);

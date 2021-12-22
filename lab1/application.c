@@ -74,18 +74,6 @@ int sendPacket(int fd)
     controlPacket[4 + sizeof(dataFile.filesize)] = strlen(dataFile.filename);
     memcpy(&controlPacket[5 + sizeof(dataFile.filesize)], &dataFile.filename, strlen(dataFile.filename));
 
-    // printf("strlen of control packet: %li\n", strlen(controlPacket));
-    // printf("Sum value of control packet: %li\n", strlen(dataFile.filename) + 5 + sizeof(dataFile.filesize));
-
-    // for (int i = 0; i < (strlen(dataFile.filename) + 5 + sizeof(dataFile.filesize)); i++)
-    // {
-    //     if (i >= strlen(dataFile.filename) + 5)
-    //     {
-    //         printf("control packet [%i] = %c\n", i, controlPacket[i]);
-    //         continue;
-    //     }
-    //     printf("control packet [%i] = %#x\n", i, controlPacket[i]);
-    // }
     if(llwrite(fd, controlPacket, strlen(dataFile.filename) + 5 + sizeof(dataFile.filesize))<0){
         logError("Something went wrong while sending START control packet on llwrite()!\n");
         exit(-1);
@@ -123,11 +111,7 @@ int sendPacket(int fd)
         dataPacket[3] = bytesRead % 256;
 
         memcpy(&dataPacket[4], data, bytesRead);
-        // printf("data sent length=%i=>\n", bytesRead);
-        // for(int i= 0; i < bytesRead; i++){
-        //     printf("%#x", dataPacket[4+i]);
-        // }
-        // printf("\n");
+
         if(llwrite(fd, dataPacket, bytesRead + 4) < 0){
             logError("Something went wrong while sending file information on llwrite()!\n");
             exit(-1);
@@ -188,19 +172,11 @@ int receivePacket(int fd)
             if (dataFile.fd > 0)
             { //If already openned
 
-                // printf("\nsaving length=%i=>\n", dataSize);
-                // for(int i =0; i < dataSize; i++){
-                //     printf("%#x", dataField[4+i]);
-                // }
-                // printf("\n");
-
                 write(dataFile.fd, &dataField[4], dataSize);
                 totalSizeLoaded += dataSize;
                 sprintf(msg, "Transmission Number = %i\n\t\t> %i Bytes was received on this transmission\n\t\t> %li Bytes total received!\n", sequenceNum, bytesRead, totalSizeLoaded);
                 logInfo(msg);
-                // linkLayer.sequenceNumber = (linkLayer.sequenceNumber + 1) % 2;
-                // printf("frame size received = %i\n", frameISize);
-                // printf("sequence num = %i\n", sequenceNum);
+
                 sequenceNum++;
 
             }
@@ -244,7 +220,6 @@ int receivePacket(int fd)
             }
             sprintf(msg, "File Information:\n\t\tFile name: %s\n\t\tFile total size: %ld Bytes\n", dataFile.filename, dataFile.filesize);
             logInfo(msg);
-            // linkLayer.sequenceNumber = (linkLayer.sequenceNumber + 1) % 2;
         }
         else if (dataField[0] == CTRL_PACK_C_END)
         {   
