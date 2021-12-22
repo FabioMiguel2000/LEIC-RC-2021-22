@@ -29,10 +29,13 @@ int timeout,timeoutCount;
  * @return void
  */
 void timeoutHandler();
-
+/**
+ * @brief Disconects timeout .Sets timeout back to 1
+ * @return void
+ */
 void disconnectTimeout();
 /**
- * @brief Log LL activity.
+ * @brief Log Error.
  * 
  * Prints error message in the right format
  * 
@@ -40,13 +43,41 @@ void disconnectTimeout();
  * @return void
  */
 void logError(char *msg);
-
+/**
+ * @brief Log Sucess.
+ * 
+ * Prints Sucess message in the right format
+ * 
+ * @param msg    array to put the message 
+ * @return void
+ */
 void logSuccess(char *msg);
-
+/**
+ * @brief Log Info.
+ * 
+ * Prints message with information in the right format
+ * 
+ * @param msg    array to put the message 
+ * @return void
+ */
 void logInfo(char *msg);
-
+/**
+ * @brief Log Warning.
+ * 
+ * Prints Warning message in the right format
+ * 
+ * @param msg    array to put the message 
+ * @return void
+ */
 void logWarning(char *msg);
-
+/**
+ * @brief Log Usage.
+ * 
+ * Prints warning message in the right format
+ * 
+ * @param msg    array to put the message 
+ * @return void
+ */
 void logUsage();
 
 void startTimeElapsed();
@@ -54,13 +85,20 @@ void startTimeElapsed();
 void endTimeElapsed();
 
 void logStats();
-
+/**
+ * @brief Generate Bcc2 Error must be used before transmitter sending the frame to receiver
+ * 
+ * @param frame      frame used 
+ * @param size       sixe of frame 
+ * @param stuffedBCC2Size  size of stuffes bbc2
+ * @return void
+ */
 void generateErrorBCC2(unsigned char *frame, int size, int stuffedBCC2Size);
 /**
  * @brief Generates bcc1 errors to test application 
  * 
  * @param frame      frame used 
- * @return int          Same as printf, or 0 if too verbose
+ * @return void
  */
 void generateErrorBCC1(unsigned char *frame);
 

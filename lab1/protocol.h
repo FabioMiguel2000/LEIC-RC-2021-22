@@ -9,7 +9,9 @@
 extern int IDENTITY;
 
 struct linkLayer linkLayer;
-
+/**
+ * @brief LinkLayer configuration structure.
+ */
 struct linkLayer {
     char port[20];                  /*Dispositivo /dev/ttySx, x = 0, 1*/
     int baudRate;                   /*Velocidade de transmissão*/
@@ -50,7 +52,7 @@ int llread(int fd, unsigned char *buffer);
  * @brief Close Serial Port
  *  
  * @param fd Port to close
- * @return 0 if sucessful,negative otherwise
+ * @return int 0 if sucessful,negative otherwise
  */
 int llclose(int fd);
 #endif
