@@ -73,31 +73,41 @@ void logWarning(char *msg);
 /**
  * @brief Log Usage.
  * 
- * Prints warning message in the right format
+ * Prints the correct usage of the application
  * 
- * @param msg    array to put the message 
  * @return void
  */
 void logUsage();
 
+/**
+ * @brief Function that starts the timing (To calculate Bit Rate).
+ * 
+ * @return void
+ */
 void startTimeElapsed();
 
+/**
+ * @brief Function that ends the timing and calculates the Bit Rate.
+ * 
+ * @return void
+ */
 void endTimeElapsed();
+
 
 void logStats();
 /**
- * @brief Generate Bcc2 Error must be used before transmitter sending the frame to receiver
+ * @brief Generate BCC2 Error, by changing one of the data bytes on Frame I, (must be used before transmitter sending the frame to receiver)
  * 
- * @param frame      frame used 
- * @param size       sixe of frame 
- * @param stuffedBCC2Size  size of stuffes bbc2
+ * @param frame      frame I that is ready to be sent 
+ * @param size       size of frame 
+ * @param stuffedBCC2Size  size of stuffed bbc2
  * @return void
  */
 void generateErrorBCC2(unsigned char *frame, int size, int stuffedBCC2Size);
 /**
- * @brief Generates bcc1 errors to test application 
+ * @brief  Generate BCC1 Error, by changing either the A field or C Field on Frame I, (must be used before transmitter sending the frame to receiver)
  * 
- * @param frame      frame used 
+ * @param frame      frame I that is ready to be sent 
  * @return void
  */
 void generateErrorBCC1(unsigned char *frame);

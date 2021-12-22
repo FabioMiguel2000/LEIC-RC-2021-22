@@ -58,10 +58,10 @@ void endTimeElapsed(){
 
 void logStats(){
     char buf[MAX_SIZE];
-    sprintf(buf, "Transmission Time: %f s\nTransmission Rate: %f bits/s\n", timeElapsed.timeTaken, dataFile.filesize/timeElapsed.timeTaken);
+    sprintf(buf, "Transmission Time: %f s\nTransmission Rate: %f Bytes/s\n", timeElapsed.timeTaken, dataFile.filesize/timeElapsed.timeTaken);
     write(STDOUT_FILENO, buf, strlen(buf));
 }
-//Generate Error functions must be used before transmitter sending the frame to receiver
+
 void generateErrorBCC2(unsigned char *frame, int size, int stuffedBCC2Size){
   int errorFlag = (rand() % 100) < ERROR_PROBABILITY_BCC2;
   if (errorFlag){
