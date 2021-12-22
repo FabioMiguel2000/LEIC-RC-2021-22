@@ -24,7 +24,7 @@ int parseArgs(int argc, char **argv)
     return -1;
 }
 
-int getArgs(){
+int getIdentity(){
     char buf[MAX_SIZE];
     do{
         logInfo("Choose identity:\n\t\t1.RECEIVER\n\t\t2.TRANSMITTER\n  ");
@@ -280,7 +280,10 @@ int main(int argc, char **argv)
         logUsage();
         exit(-1);
     }
-    getArgs();
+    if(getIdentity() < 0){
+        logError("Unable to get application identity!\n");
+        exit(-1);
+    }
     int fd = llopen(portNum, applicationLayer.status);
     if (fd < 0)
     {

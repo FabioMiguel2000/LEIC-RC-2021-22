@@ -30,43 +30,45 @@ struct dataFile {
  * 
  * @param argc      Argument count
  * @param arg      Argument vector
- * @return int      number of port that has been passed by user, -1 if error
+ * @return int     Port number that has been passed by user, -1 if error
  */
 int parseArgs(int argc, char** arg);
 
 /**
  * @brief Expect UA to arrive from port.
  * 
- * @param fd   Port to expect the frame comes from
- * @return int      On success, 0;-1 otherwise
+ * @param fd        file descriptor for serial port connection
+ * @return int      On success, 0; -1 otherwise
  */
 int receiver_UA(int fd);
 /**
- * @brief Send SET message (a S-frame) to serial port.
+ * @brief Transmitter function that handles the file data and sends it to the receiver.
  * 
- * @param fd   Port to send SET message to
+ * @param fd        file descriptor for serial port connection
  * @return int      O on success, -1 otherwise
  */
 int transmitter_SET(int fd);
 /**
- * @brief Sends data packet.
+ * @brief Receiver function that receives and process the file data comming from the transmitter.
  * 
- * @param fd          Piece of data from the file to be sent
+ * @param fd          file descriptor for serial port connection
  * @return int        0 on success, -1 on error
  */
 int sendPacket(int fd);
+
 /**
- * @brief Initializes the application.
+ * @brief Gets the identity that current application (receiver or transmitter), in case of transmitter, will also ask for file name to be send.
+ * @return int     return 0 if success
+ */
+int getIdentity();
+/**
+ * @brief Main application function.
  * 
  * @param argc          Arguments count
  * @param arg           Argument vector
  * @return int          0 on success, -1 on error
  */
 int main(int argc, char** arg);
-/**
- * @brief Gets app arguments
- * @return int     return 0 if success
- */
-int getArgs();
+
 
 #endif
