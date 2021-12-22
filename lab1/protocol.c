@@ -218,7 +218,7 @@ int llclose(int fd){
             }
             res = read(fd, &buf, 1);
             if(res == 1){
-                updateStateMachinellclose(&stateMachine, &buf, IDENTITY);
+                updateStateMachinell_CLOSE(&stateMachine, &buf, IDENTITY);
             }
         }
         logInfo("DISC frame received from receiver.\n");
@@ -247,7 +247,7 @@ int llclose(int fd){
         {
             res = read(fd, &buf, 1);
             if(res == 1){
-                updateStateMachinellclose(&stateMachine, &buf, IDENTITY);
+                updateStateMachinell_CLOSE(&stateMachine, &buf, IDENTITY);
             }
         }
         logInfo("DISC frame received, transmitter asking to disconnect.\n");
@@ -274,7 +274,7 @@ int llclose(int fd){
         { /* loop for input */
             res = read(fd, &buf, 1); /* returns after 1 char have been input */
             if(res == 1){
-                updateStateMachinellclose(&stateMachine, &buf, IDENTITY);
+                updateStateMachinell_CLOSE(&stateMachine, &buf, IDENTITY);
             }
             if(timeout){
                 break;

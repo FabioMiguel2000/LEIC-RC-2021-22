@@ -194,7 +194,7 @@ int updateStateMachine_COMMUNICATION(stateMachine_st *currStateMachine, unsigned
     return 0;
 }
 
-void updateStateMachinellclose(stateMachine_st *currStateMachine, unsigned char *buf, int identity){
+void updateStateMachinell_CLOSE(stateMachine_st *currStateMachine, unsigned char *buf, int identity){
   
     switch(currStateMachine->currState){
         case START: 
