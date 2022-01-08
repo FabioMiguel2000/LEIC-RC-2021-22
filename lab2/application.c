@@ -6,7 +6,7 @@ int parseArgs(int argc, char **argv)
     {
         return -1;
     }
-    // signal(SIGSEGV, segmentation_fault_handler);
+    signal(SIGSEGV, segmentation_fault_handler);
 
     // char *host, *url_path, *user, *pass;
     char *ret = strstr(argv[1], "@");
@@ -35,6 +35,9 @@ int parseArgs(int argc, char **argv)
 
         application_params.user = strtok(user_pass, ":");
         application_params.pass = strtok(NULL, ":");
+    }
+    if(application_params.host == NULL || application_params.url_path == NULL){
+        return -1;
     }
     printf("user = %s\n", application_params.user == NULL? "anonymous": application_params.user);
     printf("pass = %s\n", application_params.pass == NULL? "anonymous": application_params.pass);
