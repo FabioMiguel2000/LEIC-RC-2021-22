@@ -5,15 +5,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include<arpa/inet.h>
+#include <unistd.h>
 
 #include "macros.h"
-
-// typedef struct application_params_t{
-//     char user[MAX_SIZE];
-//     char pass[MAX_SIZE];
-//     char host[MAX_SIZE];
-//     char url_path[MAX_SIZE];
-// }application_params_t;
+#include "log.h"
 
 typedef struct application_params_t{
     char *user;

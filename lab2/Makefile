@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall
 TARGET = download
-OBJS = application.o
+OBJS = application.o log.o
 DEPS = $(OBJS:.o=.h) macros.h
 
 %.o: %.c $(DEPS)
