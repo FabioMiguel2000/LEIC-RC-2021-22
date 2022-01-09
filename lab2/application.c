@@ -110,6 +110,8 @@ int passiveModeRequest(int sockfd){
     printf("Client:\npasv");
     write(sockfd, "pasv", 4);
     write(sockfd, "\n", 1);
+    res = read(sockfd, buff, 1);
+    printf("%c", buff[0]);
     while(res > 0){
         res = read(sockfd, buff, 1);
         printf("%c", buff[0]);
