@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include<arpa/inet.h>
 #include <unistd.h>
+#include <libgen.h>
 
 #include "macros.h"
 #include "log.h"
@@ -18,6 +19,7 @@ typedef struct application_params_t{
     char *pass;
     char *host;
     char *url_path;
+    char *filename;
 }application_params_t;
 
 application_params_t application_params;

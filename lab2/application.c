@@ -1,5 +1,6 @@
 #include "application.h"
 
+
 int parseArgs(int argc, char **argv)
 {
     if (argc != 2)
@@ -41,12 +42,14 @@ int parseArgs(int argc, char **argv)
     {
         return -1;
     }
+    application_params.filename = basename(application_params.url_path);
     char msg[MAX_SIZE];
-    sprintf(msg, "\n\tuser = %s\n\tpass = %s\n\thost = %s\n\turl path = %s\n",
+    sprintf(msg, "\n\tuser = %s\n\tpass = %s\n\thost = %s\n\turl path = %s\n\tfile name = %s\n",
             application_params.user,
             application_params.pass,
             application_params.host,
-            application_params.url_path);
+            application_params.url_path,
+            application_params.filename);
     logInfo(msg);
     return 0;
 }
@@ -117,17 +120,18 @@ int download(int sockfd2)
 {
     char buff[2];
     int res;
-    FILE * fileFp = fopen(application_params.url_path, "w+");
+    FILE * fileFp = fopen(application_params.filename, "wb+");
 
     printf(">>>Client is Downloading the file:\n");
     res = read(sockfd2, buff, 1);
     printf("%c", buff[0]);
-    fprintf(fileFp, "%c", buff[0]);
+    fwrite(buff, 1, 1, fileFp);
     while (res > 0)
     {
         res = read(sockfd2, buff, 1);
         printf("%c", buff[0]);
-        fprintf(fileFp, "%c", buff[0]);
+        fwrite(buff, 1, 1, fileFp);
+
     }
     fclose(fileFp);
     return 0;
@@ -305,11 +309,15 @@ int main(int argc, char **argv)
     }
 
     sendRetr(sockfd);
-
-    // if (close(sockfd)<0) {
-    //     perror("close()");
-    //     exit(-1);
-    // }
+    download(sockfd2);
+    if (close(sockfd)<0) {
+        perror("close()");
+        exit(-1);
+    }
+    if (close(sockfd2)<0) {
+        perror("close()");
+        exit(-1);
+    }
 
     return 0;
 }
