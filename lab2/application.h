@@ -27,6 +27,13 @@ application_params_t application_params;
 int parseArgs(int argc, char **argv);
 int main(int argc,  char **argv);
 void segmentation_fault_handler();
+int getServerResponse(int sockfd, int linesN);
+int quit(int sockfd);
+int passiveModeRequest(int sockfd);
+int download(int sockfd2);
+void sendRetr(int sockfd);
+
+
 
 
 

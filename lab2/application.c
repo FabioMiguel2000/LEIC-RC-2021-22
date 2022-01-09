@@ -122,14 +122,12 @@ int download(int sockfd2)
     int res;
     FILE * fileFp = fopen(application_params.filename, "wb+");
 
-    printf(">>>Client is Downloading the file:\n");
+    printf(">>>Client 2 is Downloading the file:\n");
     res = read(sockfd2, buff, 1);
-    printf("%c", buff[0]);
     fwrite(buff, 1, 1, fileFp);
     while (res > 0)
     {
         res = read(sockfd2, buff, 1);
-        printf("%c", buff[0]);
         fwrite(buff, 1, 1, fileFp);
 
     }
@@ -189,6 +187,13 @@ int passiveModeRequest(int sockfd)
         }
     }
     return a * 256 + b;
+}
+
+int quit(int sockfd){
+    write(sockfd, "quit", 4);
+    write(sockfd, "\n", 1);
+    int status = getServerResponse(sockfd, 2);
+    return status;
 }
 
 int getServerResponse(int sockfd, int linesN)
@@ -310,6 +315,12 @@ int main(int argc, char **argv)
 
     sendRetr(sockfd);
     download(sockfd2);
+
+    if(quit(sockfd) != 221){
+        logError("quit() Failed! Unable to disconnect\n");
+        exit(-1);
+    }
+
     if (close(sockfd)<0) {
         perror("close()");
         exit(-1);
