@@ -103,6 +103,47 @@ void sendCredentials(int sockfd, int type){
     write(sockfd, "\n", 1);
 }
 
+int passiveModeRequest(int sockfd){
+    char ip_port[MAX_SIZE];
+    int res;
+    char buff[2];
+    write(sockfd, "pasv", 4);
+    write(sockfd, "\n", 1);
+    res = read(sockfd, buff, 1);
+    while(res > 0){
+        res = read(sockfd, buff, 1);
+        printf("%c", buff[0]);
+        if (buff[0] == '\n')
+        {
+            break;
+        }
+        if(buff[0] == '('){
+            int index = 0;
+            while(res>0){
+                res = read(sockfd, buff, 1);
+                printf("%c", buff[0]);
+                if(buff[0] == ')'){
+                    break;
+                }
+                ip_port[index] = buff[0];
+            }
+        }
+    }
+    // Parse the and calculate port number
+    int a, b;
+    char *temp = strtok(ip_port, ",");
+    for(int i =0; i < 5; i++){
+        temp = strtok(ip_port, ",");
+        if(i == 4){
+            a = atoi(temp);
+        }
+        if(i == 5){
+            b = atoi(temp);
+        }
+    }
+    return a*256+b;
+}
+
 int getServerResponse(int sockfd, int linesN){
     char buff[2];
     int status = 0;
@@ -144,8 +185,6 @@ int main(int argc, char **argv)
 
     int sockfd;
     struct sockaddr_in server_addr;
-    // char buf[] = "Mensagem de teste na travessia da pilha TCP/IP\n";
-    // size_t bytes;
 
     /*server address handling*/
     bzero((char *)&server_addr, sizeof(server_addr));
@@ -189,6 +228,7 @@ int main(int argc, char **argv)
         logError("getServerResponse() Failed! Wrong password provided\n");
         exit(-1);
     }
+
 
 
     // if (close(sockfd)<0) {
