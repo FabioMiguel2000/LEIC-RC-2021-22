@@ -109,7 +109,6 @@ int passiveModeRequest(int sockfd){
     char buff[2];
     write(sockfd, "pasv", 4);
     write(sockfd, "\n", 1);
-    res = read(sockfd, buff, 1);
     while(res > 0){
         res = read(sockfd, buff, 1);
         printf("%c", buff[0]);
@@ -228,7 +227,8 @@ int main(int argc, char **argv)
         logError("getServerResponse() Failed! Wrong password provided\n");
         exit(-1);
     }
-
+    int portNum = passiveModeRequest(sockfd);
+    printf("portNum = %d\n", portNum);
 
 
     // if (close(sockfd)<0) {
