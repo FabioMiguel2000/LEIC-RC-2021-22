@@ -30,7 +30,7 @@ void segmentation_fault_handler();
 int getServerResponse(int sockfd, int linesN);
 int quit(int sockfd);
 int passiveModeRequest(int sockfd);
-int download(int sockfd2);
+int download(int sockfd2, int sockfd);
 void sendRetr(int sockfd);
 
 

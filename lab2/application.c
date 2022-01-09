@@ -116,7 +116,7 @@ void sendRetr(int sockfd)
     write(sockfd, "\n", 1);
 }
 
-int download(int sockfd2)
+int download(int sockfd2, int sockfd)
 {
     char buff[2];
     int res;
@@ -132,7 +132,7 @@ int download(int sockfd2)
 
     }
     fclose(fileFp);
-    return 0;
+    return getServerResponse(sockfd, 2);
 }
 
 int passiveModeRequest(int sockfd)
@@ -192,6 +192,7 @@ int passiveModeRequest(int sockfd)
 int quit(int sockfd){
     write(sockfd, "quit", 4);
     write(sockfd, "\n", 1);
+    printf("Client:\nquit\n");
     int status = getServerResponse(sockfd, 2);
     return status;
 }
@@ -314,7 +315,10 @@ int main(int argc, char **argv)
     }
 
     sendRetr(sockfd);
-    download(sockfd2);
+    if(download(sockfd2, sockfd) != 150){
+        logError("download() Failed! Unable to download\n");
+        exit(-1);
+    }
 
     if(quit(sockfd) != 221){
         logError("quit() Failed! Unable to disconnect\n");
