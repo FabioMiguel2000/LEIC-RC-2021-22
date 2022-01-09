@@ -107,7 +107,7 @@ int passiveModeRequest(int sockfd){
     char ip_port[MAX_SIZE];
     int res;
     char buff[2];
-    printf("Client:\npasv");
+    printf("Client:\npasv\n");
     write(sockfd, "pasv", 4);
     write(sockfd, "\n", 1);
     res = read(sockfd, buff, 1);
@@ -128,6 +128,7 @@ int passiveModeRequest(int sockfd){
                     break;
                 }
                 ip_port[index] = buff[0];
+                index ++;
             }
         }
     }
