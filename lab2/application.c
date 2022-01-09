@@ -88,6 +88,50 @@ void segmentation_fault_handler()
     exit(-1);
 }
 
+//  type = 0 for user, type = 1 for pass
+void sendCredentials(int sockfd, int type){
+    char buff[MAX_SIZE];
+    if(type == 0){
+        sprintf(buff, "user %s", application_params.user);
+    }
+    else{
+        sprintf(buff, "pass %s", application_params.pass);
+
+    }
+    printf(">>>Client:\n%s\n", buff);
+    write(sockfd, buff, strlen(buff));
+    write(sockfd, "\n", 1);
+}
+
+int getServerResponse(int sockfd, int linesN){
+    char buff[2];
+    int status = 0;
+    int res;
+    printf(">>>Server Response:\n");
+    for(int i = 0; i < 3; i ++){
+        res = read(sockfd, buff, 1);
+        printf("%c", buff[0]);
+        status = status*10+ atoi(&buff[0]);
+    }
+    // printf("Status code: %d\n", status);
+    int count = 0;
+    while (res > 0)
+    {
+        res = read(sockfd, buff, 1);
+        printf("%c", buff[0]);
+        if (buff[0] == '\n')
+        {
+            count ++;
+        }
+        if(count == linesN){
+            break;
+        }
+    }
+    return status;
+}
+
+// int getServer
+
 int main(int argc, char **argv)
 {
 
@@ -125,85 +169,27 @@ int main(int argc, char **argv)
     }
 
     // Server response after connection
-    char buff[MAX_SIZE];
-    int res = read(sockfd, buff, 1);
-    int count = 0;
-    printf(">>>Server Response:\n");
-    while (res != -1)
-    {
-        printf("%c", buff[0]);
-        res = read(sockfd, buff, 1);
-        if (buff[0] == '\n')
-        {
-            count++;
-        }
-        if (count == 10)
-        {
-            break;
-        }
+    if(getServerResponse(sockfd, 10) != 220){
+        logError("getServerResponse() Failed! Unable to connect to server\n");
+        exit(-1);
     }
-    memset(buff, 0, MAX_SIZE * sizeof(char));
     // Send User
-    sprintf(buff, "user %s", application_params.user);
-    res = write(sockfd, buff, strlen(buff));
-    res = write(sockfd, "\n", 1);
-
-    printf("Client:\n%s\n", buff);
-
-    memset(buff, 0, MAX_SIZE * sizeof(char));
+    sendCredentials(sockfd, USER_TYPE);
 
     // Server response after sending user
-    res = read(sockfd, buff, 1);
-    printf(">>>Server Response:\n");
-    count = 0;
-    while (res != -1)
-    {
-        printf("%c", buff[0]);
-        res = read(sockfd, buff, 1);
-        if (buff[0] == '\n')
-        {
-            printf("%c", buff[0]);
-            break;
-        }
+    if(getServerResponse(sockfd, 1) != 331){
+        logError("getServerResponse() Failed! Wrong user provided\n");
+
+        exit(-1);
     }
-    memset(buff, 0, MAX_SIZE * sizeof(char));
 
     // Send Pass
-    sprintf(buff, "pass %s", application_params.pass);
-    res = write(sockfd, buff, strlen(buff));
-    res = write(sockfd, "\n", 1);
-
-    memset(buff, 0, MAX_SIZE * sizeof(char));
-
-    // Server response after sending user
-    res = read(sockfd, buff, 1);
-    printf(">>>Server Response:\n");
-    count = 0;
-    while (res != -1)
-    {
-        printf("%c", buff[0]);
-        res = read(sockfd, buff, 1);
-        if (buff[0] == '\n')
-        {
-            printf("%c", buff[0]);
-            break;
-        }
+    sendCredentials(sockfd, PASS_TYPE);
+    if(getServerResponse(sockfd, 1) != 230){
+        logError("getServerResponse() Failed! Wrong password provided\n");
+        exit(-1);
     }
 
-    // if(res == -1){
-    //     logError("No response from server\n");
-    //     exit(-1);
-    // }
-    // logServer(buff);
-
-    // /*send a string to the server*/
-    // bytes = write(sockfd, buf, strlen(buf));
-    // if (bytes > 0)
-    //     printf("Bytes escritos %ld\n", bytes);
-    // else {
-    //     perror("write()");
-    //     exit(-1);
-    // }
 
     // if (close(sockfd)<0) {
     //     perror("close()");
