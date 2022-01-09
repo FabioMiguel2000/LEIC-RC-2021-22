@@ -107,6 +107,7 @@ int passiveModeRequest(int sockfd){
     char ip_port[MAX_SIZE];
     int res;
     char buff[2];
+    printf("Client:\npasv");
     write(sockfd, "pasv", 4);
     write(sockfd, "\n", 1);
     while(res > 0){
@@ -129,10 +130,15 @@ int passiveModeRequest(int sockfd){
         }
     }
     // Parse the and calculate port number
+    printf("ipport=%s\n", ip_port);
     int a, b;
     char *temp = strtok(ip_port, ",");
+    printf("temp=%s\n", temp);
+
     for(int i =0; i < 5; i++){
         temp = strtok(ip_port, ",");
+        printf("temp=%s\n", temp);
+
         if(i == 4){
             a = atoi(temp);
         }
