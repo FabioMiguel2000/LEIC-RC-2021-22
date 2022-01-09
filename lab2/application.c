@@ -89,21 +89,52 @@ void segmentation_fault_handler()
 }
 
 //  type = 0 for user, type = 1 for pass
-void sendCredentials(int sockfd, int type){
+void sendCredentials(int sockfd, int type)
+{
     char buff[MAX_SIZE];
-    if(type == 0){
+    if (type == 0)
+    {
         sprintf(buff, "user %s", application_params.user);
     }
-    else{
+    else
+    {
         sprintf(buff, "pass %s", application_params.pass);
-
     }
     printf(">>>Client:\n%s\n", buff);
     write(sockfd, buff, strlen(buff));
     write(sockfd, "\n", 1);
 }
+void sendRetr(int sockfd)
+{
+    char buff[MAX_SIZE];
+    sprintf(buff, "retr %s", application_params.url_path);
+    printf(">>>Client:\n%s\n", buff);
+    write(sockfd, buff, strlen(buff));
+    write(sockfd, "\n", 1);
+}
 
-int passiveModeRequest(int sockfd){
+int download(int sockfd2)
+{
+    char buff[2];
+    int res;
+    FILE * fileFp = fopen(application_params.url_path, "w+");
+
+    printf(">>>Client is Downloading the file:\n");
+    res = read(sockfd2, buff, 1);
+    printf("%c", buff[0]);
+    fprintf(fileFp, "%c", buff[0]);
+    while (res > 0)
+    {
+        res = read(sockfd2, buff, 1);
+        printf("%c", buff[0]);
+        fprintf(fileFp, "%c", buff[0]);
+    }
+    fclose(fileFp);
+    return 0;
+}
+
+int passiveModeRequest(int sockfd)
+{
     char ip_port[MAX_SIZE];
     int res;
     char buff[2];
@@ -112,55 +143,61 @@ int passiveModeRequest(int sockfd){
     write(sockfd, "\n", 1);
     res = read(sockfd, buff, 1);
     printf("%c", buff[0]);
-    while(res > 0){
+    while (res > 0)
+    {
         res = read(sockfd, buff, 1);
         printf("%c", buff[0]);
         if (buff[0] == '\n')
         {
             break;
         }
-        if(buff[0] == '('){
+        if (buff[0] == '(')
+        {
             int index = 0;
-            while(res>0){
+            while (res > 0)
+            {
                 res = read(sockfd, buff, 1);
                 printf("%c", buff[0]);
-                if(buff[0] == ')'){
+                if (buff[0] == ')')
+                {
                     break;
                 }
                 ip_port[index] = buff[0];
-                index ++;
+                index++;
             }
         }
     }
     // Parse the and calculate port number
-    printf("ipport=%s\n", ip_port);
     int a, b;
     char *temp = strtok(ip_port, ",");
-    printf("temp=%s\n", temp);
 
-    for(int i =0; i < 5; i++){
-        temp = strtok(ip_port, ",");
-        printf("temp=%s\n", temp);
+    for (int i = 0; i < 5; i++)
+    {
+        temp = strtok(NULL, ",");
 
-        if(i == 4){
+        if (i == 3)
+        {
             a = atoi(temp);
         }
-        if(i == 5){
+        if (i == 4)
+        {
             b = atoi(temp);
         }
     }
-    return a*256+b;
+    return a * 256 + b;
 }
 
-int getServerResponse(int sockfd, int linesN){
+int getServerResponse(int sockfd, int linesN)
+{
     char buff[2];
     int status = 0;
     int res;
     printf(">>>Server Response:\n");
-    for(int i = 0; i < 3; i ++){
+    for (int i = 0; i < 3; i++)
+    {
         res = read(sockfd, buff, 1);
         printf("%c", buff[0]);
-        status = status*10+ atoi(&buff[0]);
+        status = status * 10 + atoi(&buff[0]);
     }
     // printf("Status code: %d\n", status);
     int count = 0;
@@ -170,9 +207,10 @@ int getServerResponse(int sockfd, int linesN){
         printf("%c", buff[0]);
         if (buff[0] == '\n')
         {
-            count ++;
+            count++;
         }
-        if(count == linesN){
+        if (count == linesN)
+        {
             break;
         }
     }
@@ -216,7 +254,8 @@ int main(int argc, char **argv)
     }
 
     // Server response after connection
-    if(getServerResponse(sockfd, 10) != 220){
+    if (getServerResponse(sockfd, 10) != 220)
+    {
         logError("getServerResponse() Failed! Unable to connect to server\n");
         exit(-1);
     }
@@ -224,7 +263,8 @@ int main(int argc, char **argv)
     sendCredentials(sockfd, USER_TYPE);
 
     // Server response after sending user
-    if(getServerResponse(sockfd, 1) != 331){
+    if (getServerResponse(sockfd, 1) != 331)
+    {
         logError("getServerResponse() Failed! Wrong user provided\n");
 
         exit(-1);
@@ -232,13 +272,39 @@ int main(int argc, char **argv)
 
     // Send Pass
     sendCredentials(sockfd, PASS_TYPE);
-    if(getServerResponse(sockfd, 1) != 230){
+    if (getServerResponse(sockfd, 1) != 230)
+    {
         logError("getServerResponse() Failed! Wrong password provided\n");
         exit(-1);
     }
     int portNum = passiveModeRequest(sockfd);
-    printf("portNum = %d\n", portNum);
+    // printf("portNum = %d\n", portNum);
 
+    int sockfd2;
+    struct sockaddr_in server_addr2;
+
+    /*For the second client to receive the file data*/
+    bzero((char *)&server_addr2, sizeof(server_addr2));
+    server_addr2.sin_family = AF_INET;
+    server_addr2.sin_addr.s_addr = inet_addr(inet_ntoa(*((struct in_addr *)h->h_addr))); /*32 bit Internet address network byte ordered*/
+    server_addr2.sin_port = htons(portNum);                                              /*server TCP port must be network byte ordered */
+
+    /*open a TCP socket*/
+    if ((sockfd2 = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    {
+        logError("socket()");
+        exit(-1);
+    }
+    /*connect to the server*/
+    if (connect(sockfd2,
+                (struct sockaddr *)&server_addr2,
+                sizeof(server_addr2)) < 0)
+    {
+        logError("connect()");
+        exit(-1);
+    }
+
+    sendRetr(sockfd);
 
     // if (close(sockfd)<0) {
     //     perror("close()");
