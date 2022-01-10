@@ -8,7 +8,13 @@ int parseArgs(int argc, char **argv)
         return -1;
     }
     signal(SIGSEGV, segmentation_fault_handler);
-
+    char protocol[7];
+    strncpy(protocol,argv[1],6);
+    protocol[6]='\0';
+    if(strcmp(protocol,"ftp://")!=0){
+        logError("protocol is not FTP.");
+        exit(-1);
+    }
     char *ret = strstr(argv[1], "@");
     if (ret == NULL)
     {
@@ -16,7 +22,7 @@ int parseArgs(int argc, char **argv)
         // ftp://<host>/<url-path>
         // removedHeader will contain <host>/<url-path>
         char *removedHeader = (char *)malloc(strlen(argv[1]) - 6);
-        memcpy(removedHeader, &argv[1][6], strlen(argv[1]));
+        memcpy(removedHeader, &argv[1][6], strlen(argv[1])-6);
 
         application_params.host = strtok(removedHeader, "/");
         application_params.url_path = strtok(NULL, ";");
@@ -33,7 +39,7 @@ int parseArgs(int argc, char **argv)
 
         // user_pass will contain <user>:<passw ord>
         char *user_pass = (char *)malloc(strlen(header) - 6);
-        memcpy(user_pass, &header[6], strlen(header));
+        memcpy(user_pass, &header[6], strlen(header)-6);
 
         application_params.user = strtok(user_pass, ":");
         application_params.pass = strtok(NULL, ":");
