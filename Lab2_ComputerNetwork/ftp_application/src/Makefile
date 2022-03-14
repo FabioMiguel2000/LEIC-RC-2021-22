@@ -17,6 +17,9 @@ clean:
 
 #	These commands should work
 
-#./download ftp://rcom:rcom@netlab1.fe.up.pt/somethinge.txt;
 #./download ftp://rcom:rcom@ftp.up.pt/pub/kodi/timestamp.txt
-#./download ftp://ftp.up.pt/pub/kodi/timestamp.txt
+#./download ftp://ftp.up.pt/pub/kodi/screenshots/kodi-addons.jpg
+#./download ftp://ftp.up.pt/pub/kodi/demo-files/BBB/bbb_sunflower_1080p_30fps_normal.mp4
+
+
+
